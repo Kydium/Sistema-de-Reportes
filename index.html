@@ -1,0 +1,2767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Generador de Reportes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1115;
+    --bg-soft: #161922;
+    --panel: #1c2030;
+    --panel-2: #232838;
+    --border: #2a3045;
+    --border-soft: #232838;
+    --text: #e9ecf3;
+    --text-dim: #9aa3b8;
+    --text-faint: #5a6178;
+    --accent: #ffd166;
+    --accent-2: #06d6a0;
+    --accent-3: #ef476f;
+    --accent-soft: rgba(255, 209, 102, 0.12);
+    --grad: linear-gradient(135deg, #ffd166 0%, #ef476f 50%, #8338ec 100%);
+    --shadow: 0 20px 60px rgba(0,0,0,0.4);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  body {
+    background:
+      radial-gradient(1200px 600px at 90% -10%, rgba(131, 56, 236, 0.15), transparent 60%),
+      radial-gradient(900px 500px at -10% 10%, rgba(255, 209, 102, 0.08), transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 18px 120px; }
+
+  header.hero { margin-bottom: 22px; position: relative; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .eyebrow::before { content: ''; width: 22px; height: 1px; background: var(--text-dim); display: inline-block; }
+  h1.title {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: clamp(34px, 8vw, 44px); line-height: 1.0;
+    margin: 0 0 6px; letter-spacing: -0.02em;
+  }
+  h1.title em {
+    font-style: italic; font-weight: 400;
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .subtitle { color: var(--text-dim); font-size: 14px; line-height: 1.5; max-width: 540px; }
+
+  .type-selector {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px; margin-bottom: 18px;
+  }
+  .type-card {
+    background: var(--panel); border: 1.5px solid var(--border);
+    border-radius: var(--radius); padding: 14px 8px;
+    cursor: pointer; text-align: center;
+    transition: all 0.25s ease; position: relative; overflow: hidden;
+  }
+  .type-card .t-icon {
+    font-size: 24px; display: block; margin-bottom: 6px;
+    filter: grayscale(0.4); transition: filter 0.25s;
+  }
+  .type-card .t-label {
+    font-size: 12.5px; font-weight: 600; color: var(--text-dim);
+    letter-spacing: 0.02em; transition: color 0.25s;
+  }
+  .type-card:hover { border-color: var(--text-dim); }
+  .type-card.active {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, rgba(255, 209, 102, 0.08), var(--panel));
+    box-shadow: 0 8px 30px rgba(255, 209, 102, 0.1);
+  }
+  .type-card.active .t-icon { filter: grayscale(0); }
+  .type-card.active .t-label { color: var(--text); }
+  .type-card.active::after {
+    content: ''; position: absolute; top: 8px; right: 8px;
+    width: 8px; height: 8px; background: var(--accent); border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(255, 209, 102, 0.2);
+  }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 18px;
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim);
+    margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px dashed var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-label .badge {
+    background: var(--accent-soft); color: var(--accent);
+    padding: 3px 8px; border-radius: 20px; font-size: 10px;
+    letter-spacing: 0.08em; border: 1px solid rgba(255, 209, 102, 0.2);
+  }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  label.lbl {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--text-dim); margin-bottom: 6px; letter-spacing: 0.02em;
+  }
+  label.lbl .hint {
+    font-weight: 400; color: var(--text-faint); font-style: italic;
+    margin-left: 6px; font-size: 11px;
+  }
+  input[type="text"], input[type="date"], input[type="number"], select, textarea {
+    width: 100%; background: var(--bg-soft); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Inter', sans-serif;
+    font-size: 15px; padding: 11px 13px; border-radius: var(--radius-sm);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none; appearance: none;
+  }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.5; font-family: 'Inter', sans-serif; }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.12);
+  }
+  select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%239aa3b8' d='M6 8L0 0h12z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px;
+  }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 480px) { .row { grid-template-columns: 1fr; } }
+
+  .camera-list { display: flex; flex-direction: column; gap: 8px; }
+  .camera-row {
+    display: grid; grid-template-columns: 1fr 110px auto;
+    gap: 8px; align-items: center;
+  }
+  .camera-row input { padding: 9px 11px; font-size: 14px; }
+  .icon-btn {
+    background: var(--bg-soft); border: 1px solid var(--border); color: var(--text-dim);
+    width: 38px; height: 38px; border-radius: var(--radius-sm);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; font-size: 16px; padding: 0;
+  }
+  .icon-btn:hover { color: var(--accent-3); border-color: var(--accent-3); }
+  .add-btn {
+    background: transparent; border: 1px dashed var(--border); color: var(--text-dim);
+    width: 100%; padding: 10px; border-radius: var(--radius-sm);
+    cursor: pointer; font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 500; transition: all 0.2s; margin-top: 8px;
+  }
+  .add-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+  .check-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+  .check-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; background: var(--bg-soft);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    cursor: pointer; transition: all 0.2s; user-select: none;
+  }
+  .check-item:hover { border-color: var(--text-dim); }
+  .check-item input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 18px; height: 18px; border: 1.5px solid var(--border);
+    border-radius: 5px; background: var(--bg); cursor: pointer;
+    position: relative; flex-shrink: 0; transition: all 0.15s;
+  }
+  .check-item input[type="checkbox"]:checked { background: var(--accent-2); border-color: var(--accent-2); }
+  .check-item input[type="checkbox"]:checked::after {
+    content: '✓'; position: absolute; color: #0f1115;
+    font-size: 13px; font-weight: 700;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+  }
+  .check-item.checked { border-color: rgba(6, 214, 160, 0.3); background: rgba(6, 214, 160, 0.05); }
+  .check-item span { font-size: 13.5px; color: var(--text); }
+
+  .discount-preview {
+    background: linear-gradient(135deg, rgba(255, 209, 102, 0.08), rgba(239, 71, 111, 0.04));
+    border: 1px solid rgba(255, 209, 102, 0.2);
+    padding: 12px 14px; border-radius: var(--radius-sm); margin-top: 10px;
+    font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .discount-preview .pill {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--accent); color: #0f1115;
+    padding: 3px 8px; border-radius: 20px; font-weight: 600;
+  }
+
+  .preview-wrap { margin-top: 22px; }
+  .preview-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+  }
+  .preview-header h2 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 22px; margin: 0; letter-spacing: -0.01em;
+  }
+  .preview {
+    background: #0a0c12; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; line-height: 1.7; color: #d4d8e3;
+    white-space: pre-wrap; word-break: break-word;
+    max-height: 400px; overflow-y: auto; position: relative;
+  }
+  .preview::-webkit-scrollbar { width: 6px; }
+  .preview::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .copy-btn {
+    width: 100%; background: var(--text); color: var(--bg); border: none;
+    padding: 16px; border-radius: var(--radius);
+    font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px;
+    cursor: pointer; margin-top: 14px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s; letter-spacing: 0.01em;
+    box-shadow: 0 6px 20px rgba(255,255,255,0.05);
+  }
+  .copy-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 30px rgba(255,255,255,0.08); }
+  .copy-btn:active { transform: translateY(0); }
+  .copy-btn.copied { background: var(--accent-2); color: #0a0c12; }
+  .copy-btn .ico { font-size: 18px; }
+
+  .secondary-btn {
+    width: 100%; background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border); padding: 11px;
+    border-radius: var(--radius-sm); font-family: 'Inter', sans-serif;
+    font-weight: 500; font-size: 13px;
+    cursor: pointer; margin-top: 8px; transition: all 0.2s;
+  }
+  .secondary-btn:hover { color: var(--text); border-color: var(--text-dim); }
+
+  .section-block { display: none; }
+  .section-block.active { display: block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* FORMAT SELECTOR */
+  .fmt-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
+  }
+  @media (min-width: 520px) { .fmt-grid { grid-template-columns: repeat(5, 1fr); } }
+  .fmt-btn {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 10px 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.2s;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+  }
+  .fmt-btn:hover { color: var(--text); border-color: var(--text-dim); }
+  .fmt-btn.active {
+    background: linear-gradient(180deg, rgba(255, 209, 102, 0.1), rgba(255, 209, 102, 0.02));
+    border-color: var(--accent);
+    color: var(--text);
+    box-shadow: 0 0 0 1px var(--accent), 0 4px 14px rgba(255, 209, 102, 0.12);
+  }
+  .fmt-btn .fmt-emoji { display: block; font-size: 16px; margin-bottom: 3px; opacity: 0.9; }
+
+  /* PROPIETARIO BTN */
+  .prop-btn {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 11px 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .prop-btn:hover { color: var(--text); border-color: var(--text-dim); }
+  .prop-btn.active {
+    background: rgba(6, 214, 160, 0.08);
+    border-color: var(--accent-2);
+    color: var(--accent-2);
+    box-shadow: 0 0 0 1px var(--accent-2);
+  }
+
+  /* ACTIVACIONES LIST */
+  .activaciones-list { display: flex; flex-direction: column; gap: 6px; }
+  .activacion-row {
+    display: grid;
+    grid-template-columns: auto 1fr 130px;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+  .activacion-row.checked { border-color: rgba(6, 214, 160, 0.3); background: rgba(6, 214, 160, 0.05); }
+  .activacion-row input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--border); border-radius: 5px;
+    background: var(--bg); cursor: pointer;
+    position: relative; flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .activacion-row input[type="checkbox"]:checked {
+    background: var(--accent-2); border-color: var(--accent-2);
+  }
+  .activacion-row input[type="checkbox"]:checked::after {
+    content: '✓'; position: absolute;
+    color: #0f1115; font-size: 13px; font-weight: 700;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+  }
+  .activacion-row .a-name {
+    font-size: 14px; color: var(--text); font-weight: 500;
+  }
+  .activacion-row input[type="text"] {
+    padding: 7px 9px; font-size: 13px; background: var(--bg);
+  }
+
+  /* MODAL */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) 0 0;
+    width: 100%;
+    max-width: 760px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 22px 18px 32px;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .modal-header h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 22px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .modal-close {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.15s;
+  }
+  .modal-close:hover { color: var(--accent-3); border-color: var(--accent-3); }
+  .modal-body { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .modal-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+  }
+  .modal-item.with-price {
+    grid-template-columns: 1fr 110px auto;
+  }
+  .modal-item input {
+    padding: 10px 12px; font-size: 14px;
+  }
+  .modal-add-row {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--accent);
+    width: 100%;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .modal-add-row:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .modal-done {
+    width: 100%;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    padding: 14px;
+    border-radius: var(--radius);
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 12px;
+    letter-spacing: 0.01em;
+  }
+  .modal-empty {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 13px;
+    font-style: italic;
+    padding: 20px;
+  }
+
+  /* ACORDEÓN */
+  .accordion {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .accordion.open { border-color: rgba(255, 209, 102, 0.3); }
+  .accordion-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .accordion-head:hover { background: rgba(255,255,255,0.02); }
+  .accordion-head .ah-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  .accordion-head .ah-icon {
+    font-size: 18px;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .accordion-head .ah-title {
+    display: flex; flex-direction: column; gap: 2px;
+    min-width: 0; flex: 1;
+  }
+  .accordion-head .ah-title h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+  .accordion-head .ah-summary {
+    font-size: 11.5px;
+    color: var(--text-faint);
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .accordion.has-data .ah-summary { color: var(--accent-2); font-style: normal; }
+  .accordion-head .ah-chev {
+    font-size: 12px;
+    color: var(--text-dim);
+    transition: transform 0.25s;
+    flex-shrink: 0;
+    margin-left: 10px;
+  }
+  .accordion.open .ah-chev { transform: rotate(180deg); }
+  .accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .accordion.open .accordion-body {
+    max-height: 4000px;
+    transition: max-height 0.4s ease;
+  }
+  .accordion-body-inner {
+    padding: 4px 16px 18px;
+    border-top: 1px dashed var(--border);
+  }
+
+  /* CABLEADO */
+  .cableado-item {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .cableado-item .ci-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .cableado-item .ci-total {
+    font-family: 'Inter', sans-serif;
+    color: var(--accent-2);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .cableado-item .ci-row {
+    display: grid;
+    grid-template-columns: 1fr 70px 70px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .cableado-item .ci-row:last-child { margin-bottom: 0; }
+  .cableado-item .ci-row label {
+    font-size: 11.5px;
+    color: var(--text-dim);
+  }
+  .cableado-item .ci-row input {
+    padding: 8px 10px;
+    font-size: 14px;
+    text-align: center;
+  }
+  .cableado-item .ci-del {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-faint);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .cableado-item .ci-del:hover { color: var(--accent-3); background: rgba(239, 71, 111, 0.1); }
+  .cableado-summary {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(6, 214, 160, 0.06);
+    border: 1px solid rgba(6, 214, 160, 0.2);
+    border-radius: var(--radius-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+  .cableado-summary .label { color: var(--text-dim); }
+  .cableado-summary .total { color: var(--accent-2); font-weight: 700; font-size: 15px; }
+  .cableado-precios {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(255, 209, 102, 0.04);
+    border: 1px dashed rgba(255, 209, 102, 0.3);
+    border-radius: var(--radius-sm);
+    margin-top: 8px;
+  }
+  .cableado-precios label { font-size: 10.5px; color: var(--text-dim); display: block; margin-bottom: 4px; }
+  .cableado-precios input { padding: 7px 9px; font-size: 13px; }
+
+  .footnote {
+    text-align: center; color: var(--text-faint);
+    font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    margin-top: 30px; letter-spacing: 0.1em; opacity: 0.5;
+  }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent-2); color: #0a0c12;
+    padding: 12px 22px; border-radius: 30px;
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px;
+    box-shadow: 0 10px 30px rgba(6, 214, 160, 0.4);
+    opacity: 0; pointer-events: none; transition: all 0.3s ease;
+    z-index: 100; display: flex; align-items: center; gap: 8px;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Generador de reportes</div>
+    <h1 class="title">Reporte <em>express</em></h1>
+    <p class="subtitle">Selecciona el tipo de servicio, llena los datos y copia el reporte listo para WhatsApp.</p>
+  </header>
+
+  <div class="type-selector" id="type-selector">
+    <div class="type-card active" data-type="camaras">
+      <span class="t-icon">📹</span>
+      <span class="t-label">Cámaras</span>
+    </div>
+    <div class="type-card" data-type="internet">
+      <span class="t-icon">🌐</span>
+      <span class="t-label">Internet</span>
+    </div>
+    <div class="type-card" data-type="soporte">
+      <span class="t-icon">🛠️</span>
+      <span class="t-label">Soporte</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">
+      <span>Datos generales</span>
+      <span class="badge" id="badge-type">Cámaras</span>
+    </div>
+    <div class="field">
+      <label class="lbl">Dirección del cliente <span class="hint">ej. VV2T03D201</span></label>
+      <input type="text" id="f-direccion" placeholder="VV2T03D201" autocomplete="off">
+    </div>
+    <div class="field">
+      <label class="lbl">Fecha de realización</label>
+      <input type="date" id="f-fecha">
+    </div>
+  </div>
+
+  <div class="section-block active" data-section="camaras">
+    <div class="card">
+      <div class="section-label"><span>Pago e instalación</span></div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl">Monto pagado</label>
+          <input type="number" id="cam-monto" placeholder="198.00" step="0.01" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label class="lbl">Método de pago</label>
+          <select id="cam-metodo">
+            <option value="YAPE">YAPE</option>
+            <option value="PLIN">PLIN</option>
+            <option value="EFECTIVO">EFECTIVO</option>
+            <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl">Cámaras instaladas <span class="hint">área + código</span></label>
+        <div class="camera-list" id="cam-list"></div>
+        <button class="add-btn" id="cam-add">+ Agregar cámara</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label"><span>Trabajos realizados</span></div>
+      <div class="check-grid" id="cam-checks"></div>
+      <button class="add-btn" id="cam-checks-manage" style="margin-top:8px">⚙ Editar opciones</button>
+      <div class="field" style="margin-top:14px">
+        <label class="lbl">Observaciones adicionales <span class="hint">opcional</span></label>
+        <textarea id="cam-obs" placeholder="Detalles extra que quieras añadir..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-block" data-section="internet">
+
+    <!-- ACORDEÓN: Servicio y paquete -->
+    <div class="accordion" id="acc-servicio">
+      <div class="accordion-head" data-target="acc-servicio">
+        <div class="ah-left">
+          <div class="ah-icon">📦</div>
+          <div class="ah-title">
+            <h3>Servicio y paquete</h3>
+            <div class="ah-summary" id="sum-servicio">Servicio, paquete, pago, contrato</div>
+          </div>
+        </div>
+        <div class="ah-chev">▼</div>
+      </div>
+      <div class="accordion-body">
+        <div class="accordion-body-inner">
+          <div class="field">
+            <label class="lbl">Servicio realizado</label>
+            <input type="text" id="net-servicio" placeholder="Instalación FTTH completada.">
+          </div>
+          <div class="field">
+            <label class="lbl">Paquete contratado</label>
+            <div class="row" style="grid-template-columns: 1fr 110px; gap: 8px;">
+              <select id="net-paquete-sel">
+                <option value="">— Sin seleccionar —</option>
+              </select>
+              <input type="text" id="net-paquete-precio" placeholder="S/ 0.00" inputmode="decimal">
+            </div>
+            <button class="add-btn" id="net-paquete-manage" style="margin-top:6px">⚙ Gestionar paquetes</button>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label class="lbl">Monto pagado</label>
+              <input type="number" id="net-monto" placeholder="30.00" step="0.01" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label class="lbl">Concepto</label>
+              <select id="net-concepto">
+                <option value="Prorrateo">Prorrateo</option>
+                <option value="Mes completo">Mes completo</option>
+                <option value="Instalación">Instalación</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label class="lbl">Método de pago</label>
+              <select id="net-metodo">
+                <option value="Yape">Yape</option>
+                <option value="Plin">Plin</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Transferencia">Transferencia</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="lbl">Firma de contrato</label>
+              <select id="net-contrato">
+                <option value="Realizado">Realizado</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="No aplica">No aplica</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACORDEÓN: Equipos -->
+    <div class="accordion" id="acc-equipos">
+      <div class="accordion-head" data-target="acc-equipos">
+        <div class="ah-left">
+          <div class="ah-icon">🔌</div>
+          <div class="ah-title">
+            <h3>Equipos instalados</h3>
+            <div class="ah-summary" id="sum-equipos">ONU, mesh, cámaras</div>
+          </div>
+        </div>
+        <div class="ah-chev">▼</div>
+      </div>
+      <div class="accordion-body">
+        <div class="accordion-body-inner">
+          <div class="field">
+            <label class="lbl">Código de ONU / router <span class="hint">serie del equipo</span></label>
+            <input type="text" id="net-onu" placeholder="ZTEGC1234ABCD" style="text-transform:uppercase" autocomplete="off">
+          </div>
+          <div class="field">
+            <label class="check-item" style="margin-bottom:0">
+              <input type="checkbox" id="net-mesh-toggle">
+              <span>Instalación de Mesh</span>
+            </label>
+            <div id="net-mesh-wrap" style="display:none; margin-top:10px">
+              <div class="camera-list" id="net-mesh-list"></div>
+              <button class="add-btn" id="net-mesh-add">+ Agregar otro Mesh</button>
+            </div>
+          </div>
+          <div class="field">
+            <label class="check-item" style="margin-bottom:0">
+              <input type="checkbox" id="net-cam-toggle">
+              <span>Instalación de cámaras de seguridad</span>
+            </label>
+            <div id="net-cam-wrap" style="display:none; margin-top:10px">
+              <div class="camera-list" id="net-cam-list"></div>
+              <button class="add-btn" id="net-cam-add">+ Agregar cámara</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACORDEÓN: Cableado de red -->
+    <div class="accordion" id="acc-cableado">
+      <div class="accordion-head" data-target="acc-cableado">
+        <div class="ah-left">
+          <div class="ah-icon">🧵</div>
+          <div class="ah-title">
+            <h3>Cableado de red</h3>
+            <div class="ah-summary" id="sum-cableado">Opcional — metros, conectores</div>
+          </div>
+        </div>
+        <div class="ah-chev">▼</div>
+      </div>
+      <div class="accordion-body">
+        <div class="accordion-body-inner">
+          <div class="field">
+            <label class="check-item" style="margin-bottom:0">
+              <input type="checkbox" id="net-cable-toggle">
+              <span>Se realizó cableado de red</span>
+            </label>
+            <div id="net-cable-wrap" style="display:none; margin-top:10px">
+              <div class="cableado-precios">
+                <div>
+                  <label>Precio por metro (S/)</label>
+                  <input type="number" id="net-cable-precio-metro" value="2.00" step="0.10" inputmode="decimal">
+                </div>
+                <div>
+                  <label>Precio por conector (S/)</label>
+                  <input type="number" id="net-cable-precio-conector" value="5.00" step="0.10" inputmode="decimal">
+                </div>
+              </div>
+              <div id="net-cable-list" style="margin-top:10px"></div>
+              <button class="add-btn" id="net-cable-add">+ Agregar otro cableado</button>
+              <div class="cableado-summary" id="net-cable-summary" style="display:none">
+                <span class="label">Total cableado</span>
+                <span class="total" id="net-cable-total">S/ 0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACORDEÓN: Activaciones -->
+    <div class="accordion" id="acc-activaciones">
+      <div class="accordion-head" data-target="acc-activaciones">
+        <div class="ah-left">
+          <div class="ah-icon">📺</div>
+          <div class="ah-title">
+            <h3>Activaciones</h3>
+            <div class="ah-summary" id="sum-activaciones">Disney+, Netflix, MaxPlayer...</div>
+          </div>
+        </div>
+        <div class="ah-chev">▼</div>
+      </div>
+      <div class="accordion-body">
+        <div class="accordion-body-inner">
+          <div class="field">
+            <label class="lbl">Activaciones realizadas <span class="hint">marca dónde se activó</span></label>
+            <div id="net-activaciones-list" class="activaciones-list"></div>
+            <button class="add-btn" id="net-activaciones-manage" style="margin-top:6px">⚙ Gestionar activaciones</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACORDEÓN: Trabajos y observaciones -->
+    <div class="accordion" id="acc-trabajos">
+      <div class="accordion-head" data-target="acc-trabajos">
+        <div class="ah-left">
+          <div class="ah-icon">🔨</div>
+          <div class="ah-title">
+            <h3>Trabajos y observaciones</h3>
+            <div class="ah-summary" id="sum-trabajos">Checklist de trabajos</div>
+          </div>
+        </div>
+        <div class="ah-chev">▼</div>
+      </div>
+      <div class="accordion-body">
+        <div class="accordion-body-inner">
+          <div class="field">
+            <label class="lbl">Trabajos realizados</label>
+            <div class="check-grid" id="net-checks"></div>
+            <button class="add-btn" id="net-checks-manage" style="margin-top:8px">⚙ Editar opciones</button>
+          </div>
+          <div class="field">
+            <label class="lbl">Observaciones adicionales <span class="hint">opcional</span></label>
+            <textarea id="net-obs" placeholder="Otros detalles..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACORDEÓN: Propietario -->
+    <div class="accordion" id="acc-propietario">
+      <div class="accordion-head" data-target="acc-propietario">
+        <div class="ah-left">
+          <div class="ah-icon">🏠</div>
+          <div class="ah-title">
+            <h3>Propietario</h3>
+            <div class="ah-summary" id="sum-propietario">Sí es propietario</div>
+          </div>
+        </div>
+        <div class="ah-chev">▼</div>
+      </div>
+      <div class="accordion-body">
+        <div class="accordion-body-inner">
+          <div class="field">
+            <label class="lbl">¿El cliente es propietario?</label>
+            <div class="row" style="grid-template-columns: 1fr 1fr; gap: 6px;">
+              <button class="prop-btn active" data-prop="si" type="button">Sí, es propietario</button>
+              <button class="prop-btn" data-prop="no" type="button">No es propietario</button>
+            </div>
+            <div id="net-prop-extra" style="display:none; margin-top:12px">
+              <label class="lbl">Datos del propietario real</label>
+              <input type="text" id="net-prop-nombre" placeholder="Nombre completo" style="margin-bottom:8px">
+              <input type="text" id="net-prop-tel" placeholder="Teléfono / contacto" inputmode="numeric">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-block" data-section="soporte">
+    <div class="card">
+      <div class="section-label"><span>Detalle del soporte</span></div>
+      <div class="field">
+        <label class="lbl">Servicio realizado</label>
+        <input type="text" id="sup-servicio" placeholder="Reinstalación (Disney +)">
+      </div>
+      <div class="field">
+        <label class="lbl">Problema reportado</label>
+        <textarea id="sup-problema" placeholder="Cliente indicó que no se podía instalar la aplicación..."></textarea>
+      </div>
+      <div class="field">
+        <label class="lbl">Solución aplicada</label>
+        <textarea id="sup-solucion" placeholder="Se procedió a..." style="min-height:110px"></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label"><span>Notas frecuentes</span></div>
+      <div class="check-grid" id="sup-checks"></div>
+      <button class="add-btn" id="sup-checks-manage" style="margin-top:8px">⚙ Editar opciones</button>
+      <div class="field" style="margin-top:14px">
+        <label class="lbl">Observaciones adicionales <span class="hint">opcional</span></label>
+        <textarea id="sup-obs" placeholder="Recomendaciones, advertencias..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label"><span>Descuento por contrato</span></div>
+    <label class="check-item" style="margin-bottom:0">
+      <input type="checkbox" id="f-descuento">
+      <span>Aplicar 50% descuento últimos 3 meses</span>
+    </label>
+    <div class="discount-preview" id="f-descuento-preview" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-label"><span>Estilo de formato</span></div>
+    <div class="fmt-grid" id="fmt-selector">
+      <button class="fmt-btn active" data-fmt="clasico"><span class="fmt-emoji">📋</span>Clásico</button>
+      <button class="fmt-btn" data-fmt="visual"><span class="fmt-emoji">✨</span>Visual</button>
+      <button class="fmt-btn" data-fmt="fmin"><span class="fmt-emoji">⊹</span>Fut. mínimo</button>
+      <button class="fmt-btn" data-fmt="futurista"><span class="fmt-emoji">▰</span>Futurista</button>
+      <button class="fmt-btn" data-fmt="minimalista"><span class="fmt-emoji">·</span>Minimalista</button>
+    </div>
+  </div>
+
+  <div class="preview-wrap">
+    <div class="preview-header"><h2>Vista previa</h2></div>
+    <div class="preview" id="preview"></div>
+    <button class="copy-btn" id="copy-btn"><span class="ico">📋</span><span class="copy-label">Copiar reporte</span></button>
+    <button class="secondary-btn" id="reset-btn">Limpiar este formulario</button>
+  </div>
+
+  <div class="footnote">— FIN —</div>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Editar opciones</h3>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <button class="modal-add-row" id="modal-add">+ Agregar nueva opción</button>
+    <button class="modal-done" id="modal-done">Listo</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span>✓</span><span>Reporte copiado</span></div>
+
+<script>
+const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Setiembre','Octubre','Noviembre','Diciembre'];
+
+// === Catálogos por defecto (el usuario puede editar/agregar/quitar) ===
+const DEFAULT_CAM_CHECKS = [
+  { id: 'renovacion', label: 'Renovación de contrato' },
+  { id: 'limpieza', label: 'Limpieza del área al finalizar' },
+  { id: 'config-app', label: 'Configuración de app en celular del cliente' },
+  { id: 'pruebas', label: 'Pruebas de funcionamiento y grabación' },
+  { id: 'ajuste-angulos', label: 'Ajuste de ángulos de visión' },
+  { id: 'capacitacion', label: 'Capacitación al cliente sobre uso' },
+  { id: 'cableado', label: 'Canaletas / cableado ordenado' },
+];
+
+const DEFAULT_NET_CHECKS = [
+  { id: 'config-router', label: 'Configuración del router (SSID y clave)', sentence: 'Se realizó la configuración del router (SSID y clave).' },
+  { id: 'prueba-velocidad', label: 'Prueba de velocidad de internet', sentence: 'Se realizaron pruebas de velocidad de internet.' },
+  { id: 'conexion-dispositivos', label: 'Conexión de dispositivos del cliente', sentence: 'Se conectaron los dispositivos del cliente a la red.' },
+  { id: 'capacitacion', label: 'Capacitación al cliente sobre uso del servicio', sentence: 'Se capacitó al cliente sobre el uso del servicio.' },
+  { id: 'cableado', label: 'Cableado ordenado / canaletas', sentence: 'Cableado ordenado y canaletas instaladas.' },
+  { id: 'limpieza', label: 'Limpieza del área al finalizar', sentence: 'Se realizó limpieza del área al finalizar.' },
+  { id: 'copia-admin', label: 'Copia de contrato enviada a administración', sentence: 'La copia del contrato se mandará a administración.' },
+  { id: 'mudanza', label: 'Cliente recién se estaba mudando', sentence: 'El cliente recién se estaba mudando.' },
+];
+
+const DEFAULT_SUP_CHECKS = [
+  { id: 'pruebas', label: 'Pruebas de funcionamiento al finalizar', sentence: 'Se realizaron pruebas de funcionamiento al finalizar.' },
+  { id: 'mayor-edad', label: 'Cliente mayor de edad, se explicó detenidamente', sentence: 'El cliente es mayor de edad, se explicó detenidamente.' },
+  { id: 'cuenta-tecnico', label: 'Se usó cuenta de Google del técnico', sentence: 'Para acceder al servicio se usó la cuenta del técnico.' },
+  { id: 'recomendar-correo', label: 'Recomendar usar su propio correo cuando acceda', sentence: 'Se le recomendó al cliente usar su correo electrónico cuando tenga acceso a este.' },
+  { id: 'cambio-clave', label: 'Recomendar cambiar contraseña posteriormente', sentence: 'Se recomendó al cliente cambiar la contraseña posteriormente.' },
+  { id: 'capacitacion', label: 'Capacitación al cliente sobre la solución', sentence: 'Se capacitó al cliente sobre la solución aplicada.' },
+  { id: 'limpieza', label: 'Limpieza del área al finalizar', sentence: 'Se realizó limpieza del área al finalizar.' },
+];
+
+const DEFAULT_PAQUETES = [
+  { id: 'pkt-juvenil', label: 'Paquete Juvenil Pkt99', precio: '99.00' },
+  { id: 'pkt-familiar', label: 'Paquete Familiar', precio: '149.00' },
+  { id: 'pkt-premium', label: 'Paquete Premium', precio: '199.00' },
+];
+
+const DEFAULT_ACTIVACIONES = [
+  { id: 'disney', label: 'Disney+' },
+  { id: 'maxplayer', label: 'MaxPlayer' },
+  { id: 'netflix', label: 'Netflix' },
+  { id: 'prime', label: 'Prime Video' },
+  { id: 'iptv', label: 'IPTV' },
+];
+
+// Catálogo vivo (se inicializa con defaults, persiste cambios del usuario)
+const catalogo = {
+  camChecks: JSON.parse(JSON.stringify(DEFAULT_CAM_CHECKS)),
+  netChecks: JSON.parse(JSON.stringify(DEFAULT_NET_CHECKS)),
+  supChecks: JSON.parse(JSON.stringify(DEFAULT_SUP_CHECKS)),
+  paquetes:  JSON.parse(JSON.stringify(DEFAULT_PAQUETES)),
+  activaciones: JSON.parse(JSON.stringify(DEFAULT_ACTIVACIONES)),
+};
+
+// Compatibilidad: getters para los antiguos nombres
+function CAM_CHECK_OPTIONS(){ return catalogo.camChecks; }
+function NET_CHECK_OPTIONS(){ return catalogo.netChecks; }
+function SUP_CHECK_OPTIONS(){ return catalogo.supChecks; }
+function netCheckSentence(id){
+  const item = catalogo.netChecks.find(x => x.id === id);
+  return item ? (item.sentence || ('Se realizó ' + item.label.toLowerCase() + '.')) : '';
+}
+function supCheckSentence(id){
+  const item = catalogo.supChecks.find(x => x.id === id);
+  return item ? (item.sentence || ('Se realizó ' + item.label.toLowerCase() + '.')) : '';
+}
+
+const TYPE_LABELS = { camaras: 'Cámaras', internet: 'Internet', soporte: 'Soporte' };
+
+function todayISO(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function formatDateDMY(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${String(y).slice(-2)}`;
+}
+function getDiscountMonths(iso){
+  if(!iso) return [];
+  const [y,m] = iso.split('-').map(Number);
+  const startMonthIdx = m;
+  const result = [];
+  for(let i=3; i<6; i++){
+    result.push(MONTHS_ES[(startMonthIdx + i) % 12]);
+  }
+  return result;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+const state = {
+  tipo: 'camaras',
+  formato: 'clasico',
+  comun: { direccion: '', fecha: todayISO(), descuento: true },
+  camaras: {
+    monto: '', metodo: 'YAPE',
+    camaras: [{ area: '', codigo: '' }],
+    obs: '',
+    checks: { renovacion: true, limpieza: true, 'config-app': false, pruebas: false, 'ajuste-angulos': false, capacitacion: false, cableado: false },
+  },
+  internet: {
+    servicio: 'Instalación FTTH completada.',
+    paquete: '', paqueteId: '', paquetePrecio: '',
+    onu: '', meshEnabled: false, mesh: [{ ubicacion: '', codigo: '' }],
+    camEnabled: false, cam: [{ area: '', codigo: '' }],
+    cableEnabled: false, cablePrecioMetro: '2.00', cablePrecioConector: '5.00',
+    cables: [{ metros: '', conectores: 2 }],
+    monto: '', concepto: 'Prorrateo', metodo: 'Yape',
+    activacionesSel: {}, // { activacionId: 'marca/dispositivo' }
+    contrato: 'Realizado',
+    obs: '',
+    propietario: 'si', propNombre: '', propTel: '',
+    checks: {},
+  },
+  soporte: {
+    servicio: '', problema: '', solucion: '', obs: '',
+    checks: { pruebas: true, 'mayor-edad': false, 'cuenta-tecnico': false, 'recomendar-correo': false, 'cambio-clave': false, capacitacion: false, limpieza: false },
+  }
+};
+
+function saveState(){ try { localStorage.setItem('reporte_state_v2', JSON.stringify(state)); } catch(e){} }
+function loadState(){
+  try {
+    const raw = localStorage.getItem('reporte_state_v2');
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed.tipo) state.tipo = parsed.tipo;
+    if(parsed.formato) state.formato = parsed.formato;
+    if(parsed.comun) Object.assign(state.comun, parsed.comun);
+    if(parsed.camaras) Object.assign(state.camaras, parsed.camaras);
+    if(parsed.internet) Object.assign(state.internet, parsed.internet);
+    if(parsed.soporte) Object.assign(state.soporte, parsed.soporte);
+  } catch(e){}
+}
+
+document.querySelectorAll('.type-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const type = card.dataset.type;
+    state.tipo = type;
+    document.querySelectorAll('.type-card').forEach(c => c.classList.toggle('active', c.dataset.type === type));
+    document.querySelectorAll('.section-block').forEach(s => s.classList.toggle('active', s.dataset.section === type));
+    document.getElementById('badge-type').textContent = TYPE_LABELS[type];
+    // Si entra a internet, abrir el primer acordeón si ninguno está abierto
+    if(type === 'internet'){
+      const anyOpen = document.querySelector('.accordion.open');
+      if(!anyOpen) document.getElementById('acc-servicio').classList.add('open');
+    }
+    updatePreview();
+    saveState();
+  });
+});
+
+document.getElementById('f-direccion').addEventListener('input', e => {
+  state.comun.direccion = e.target.value;
+  updatePreview(); saveState();
+});
+document.getElementById('f-fecha').addEventListener('change', e => {
+  state.comun.fecha = e.target.value;
+  updatePreview(); saveState();
+});
+document.getElementById('f-descuento').addEventListener('change', e => {
+  state.comun.descuento = e.target.checked;
+  updatePreview(); saveState();
+});
+
+document.querySelectorAll('.fmt-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.formato = btn.dataset.fmt;
+    document.querySelectorAll('.fmt-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt === state.formato));
+    updatePreview();
+    saveState();
+  });
+});
+
+function renderCamChecks(){
+  const wrap = document.getElementById('cam-checks');
+  wrap.innerHTML = '';
+  CAM_CHECK_OPTIONS().forEach(opt => {
+    const checked = state.camaras.checks[opt.id];
+    const el = document.createElement('label');
+    el.className = 'check-item' + (checked ? ' checked' : '');
+    el.innerHTML = `<input type="checkbox" ${checked ? 'checked' : ''}><span>${opt.label}</span>`;
+    el.querySelector('input').addEventListener('change', (e) => {
+      state.camaras.checks[opt.id] = e.target.checked;
+      el.classList.toggle('checked', e.target.checked);
+      updatePreview(); saveState();
+    });
+    wrap.appendChild(el);
+  });
+}
+function renderCamList(){
+  const list = document.getElementById('cam-list');
+  list.innerHTML = '';
+  state.camaras.camaras.forEach((c, idx) => {
+    const row = document.createElement('div');
+    row.className = 'camera-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Área (ej. Sala)" value="${escapeHtml(c.area)}">
+      <input type="text" placeholder="Código" value="${escapeHtml(c.codigo)}" style="text-transform:uppercase">
+      <button class="icon-btn" title="Quitar">✕</button>
+    `;
+    const [areaInput, codeInput, delBtn] = row.children;
+    areaInput.addEventListener('input', e => { state.camaras.camaras[idx].area = e.target.value; updatePreview(); saveState(); });
+    codeInput.addEventListener('input', e => { state.camaras.camaras[idx].codigo = e.target.value.toUpperCase(); updatePreview(); saveState(); });
+    delBtn.addEventListener('click', () => {
+      if(state.camaras.camaras.length === 1) state.camaras.camaras[0] = { area: '', codigo: '' };
+      else state.camaras.camaras.splice(idx, 1);
+      renderCamList(); updatePreview(); saveState();
+    });
+    list.appendChild(row);
+  });
+}
+document.getElementById('cam-add').addEventListener('click', () => {
+  state.camaras.camaras.push({ area: '', codigo: '' });
+  renderCamList(); updatePreview(); saveState();
+});
+
+['cam-monto','cam-metodo','cam-obs'].forEach(id => {
+  const el = document.getElementById(id);
+  const evt = (el.tagName === 'SELECT') ? 'change' : 'input';
+  el.addEventListener(evt, () => {
+    state.camaras[id.replace('cam-','')] = el.value;
+    updatePreview(); saveState();
+  });
+});
+
+const NET_BINDINGS = {
+  'net-servicio': 'servicio', 'net-onu': 'onu',
+  'net-monto': 'monto', 'net-concepto': 'concepto', 'net-metodo': 'metodo',
+  'net-contrato': 'contrato', 'net-obs': 'obs',
+  'net-prop-nombre': 'propNombre', 'net-prop-tel': 'propTel'
+};
+Object.entries(NET_BINDINGS).forEach(([id, key]) => {
+  const el = document.getElementById(id);
+  const evt = (el.tagName === 'SELECT') ? 'change' : 'input';
+  el.addEventListener(evt, () => {
+    const val = (key === 'onu') ? el.value.toUpperCase() : el.value;
+    if(key === 'onu') el.value = val;
+    state.internet[key] = val;
+    updatePreview(); saveState();
+  });
+});
+
+// Paquete selector
+document.getElementById('net-paquete-sel').addEventListener('change', (e) => {
+  const id = e.target.value;
+  state.internet.paqueteId = id;
+  if(id){
+    const pkt = catalogo.paquetes.find(p => p.id === id);
+    if(pkt){
+      state.internet.paquete = pkt.label;
+      state.internet.paquetePrecio = pkt.precio || '';
+      document.getElementById('net-paquete-precio').value = pkt.precio || '';
+    }
+  } else {
+    state.internet.paquete = '';
+    state.internet.paquetePrecio = '';
+    document.getElementById('net-paquete-precio').value = '';
+  }
+  updatePreview(); saveState();
+});
+document.getElementById('net-paquete-precio').addEventListener('input', (e) => {
+  state.internet.paquetePrecio = e.target.value;
+  updatePreview(); saveState();
+});
+
+// Propietario sí/no
+document.querySelectorAll('.prop-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = btn.dataset.prop;
+    state.internet.propietario = val;
+    document.querySelectorAll('.prop-btn').forEach(b => b.classList.toggle('active', b.dataset.prop === val));
+    document.getElementById('net-prop-extra').style.display = (val === 'no') ? 'block' : 'none';
+    updatePreview(); saveState();
+  });
+});
+
+// Mesh toggle + lista
+document.getElementById('net-mesh-toggle').addEventListener('change', (e) => {
+  state.internet.meshEnabled = e.target.checked;
+  document.getElementById('net-mesh-wrap').style.display = e.target.checked ? 'block' : 'none';
+  if(e.target.checked && (!state.internet.mesh || state.internet.mesh.length === 0)){
+    state.internet.mesh = [{ ubicacion: '', codigo: '' }];
+    renderNetMeshList();
+  }
+  updatePreview(); saveState();
+});
+function renderNetMeshList(){
+  const list = document.getElementById('net-mesh-list');
+  list.innerHTML = '';
+  state.internet.mesh.forEach((m, idx) => {
+    const row = document.createElement('div');
+    row.className = 'camera-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Ubicación (opcional)" value="${escapeHtml(m.ubicacion)}">
+      <input type="text" placeholder="Código" value="${escapeHtml(m.codigo)}" style="text-transform:uppercase">
+      <button class="icon-btn" title="Quitar">✕</button>
+    `;
+    const [ubInput, codeInput, delBtn] = row.children;
+    ubInput.addEventListener('input', e => { state.internet.mesh[idx].ubicacion = e.target.value; updatePreview(); saveState(); });
+    codeInput.addEventListener('input', e => { state.internet.mesh[idx].codigo = e.target.value.toUpperCase(); updatePreview(); saveState(); });
+    delBtn.addEventListener('click', () => {
+      if(state.internet.mesh.length === 1) state.internet.mesh[0] = { ubicacion: '', codigo: '' };
+      else state.internet.mesh.splice(idx, 1);
+      renderNetMeshList(); updatePreview(); saveState();
+    });
+    list.appendChild(row);
+  });
+}
+document.getElementById('net-mesh-add').addEventListener('click', () => {
+  state.internet.mesh.push({ ubicacion: '', codigo: '' });
+  renderNetMeshList(); updatePreview(); saveState();
+});
+
+// === Cámaras en Internet (toggle + lista, mismo patrón que mesh) ===
+document.getElementById('net-cam-toggle').addEventListener('change', (e) => {
+  state.internet.camEnabled = e.target.checked;
+  document.getElementById('net-cam-wrap').style.display = e.target.checked ? 'block' : 'none';
+  if(e.target.checked && (!state.internet.cam || state.internet.cam.length === 0)){
+    state.internet.cam = [{ area: '', codigo: '' }];
+    renderNetCamList();
+  }
+  updatePreview(); saveState();
+});
+function renderNetCamList(){
+  const list = document.getElementById('net-cam-list');
+  list.innerHTML = '';
+  state.internet.cam.forEach((c, idx) => {
+    const row = document.createElement('div');
+    row.className = 'camera-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Área (ej. Sala)" value="${escapeHtml(c.area)}">
+      <input type="text" placeholder="Código" value="${escapeHtml(c.codigo)}" style="text-transform:uppercase">
+      <button class="icon-btn" title="Quitar">✕</button>
+    `;
+    const [areaInput, codeInput, delBtn] = row.children;
+    areaInput.addEventListener('input', e => { state.internet.cam[idx].area = e.target.value; updatePreview(); saveState(); });
+    codeInput.addEventListener('input', e => { state.internet.cam[idx].codigo = e.target.value.toUpperCase(); updatePreview(); saveState(); });
+    delBtn.addEventListener('click', () => {
+      if(state.internet.cam.length === 1) state.internet.cam[0] = { area: '', codigo: '' };
+      else state.internet.cam.splice(idx, 1);
+      renderNetCamList(); updatePreview(); saveState();
+    });
+    list.appendChild(row);
+  });
+}
+document.getElementById('net-cam-add').addEventListener('click', () => {
+  state.internet.cam.push({ area: '', codigo: '' });
+  renderNetCamList(); updatePreview(); saveState();
+});
+
+// === Cableado de red ===
+function cableTotalItem(c, precioMetro, precioConector){
+  const m = parseFloat(c.metros) || 0;
+  const conectores = parseInt(c.conectores) || 0;
+  return (m * precioMetro) + (conectores * precioConector);
+}
+function cableTotalAll(){
+  const pm = parseFloat(state.internet.cablePrecioMetro) || 0;
+  const pc = parseFloat(state.internet.cablePrecioConector) || 0;
+  return (state.internet.cables || []).reduce((sum, c) => sum + cableTotalItem(c, pm, pc), 0);
+}
+
+document.getElementById('net-cable-toggle').addEventListener('change', (e) => {
+  state.internet.cableEnabled = e.target.checked;
+  document.getElementById('net-cable-wrap').style.display = e.target.checked ? 'block' : 'none';
+  if(e.target.checked && (!state.internet.cables || state.internet.cables.length === 0)){
+    state.internet.cables = [{ metros: '', conectores: 2 }];
+  }
+  renderNetCableList();
+  updatePreview(); saveState();
+});
+document.getElementById('net-cable-precio-metro').addEventListener('input', (e) => {
+  state.internet.cablePrecioMetro = e.target.value;
+  renderNetCableList(); updatePreview(); saveState();
+});
+document.getElementById('net-cable-precio-conector').addEventListener('input', (e) => {
+  state.internet.cablePrecioConector = e.target.value;
+  renderNetCableList(); updatePreview(); saveState();
+});
+function renderNetCableList(){
+  const list = document.getElementById('net-cable-list');
+  list.innerHTML = '';
+  const pm = parseFloat(state.internet.cablePrecioMetro) || 0;
+  const pc = parseFloat(state.internet.cablePrecioConector) || 0;
+  state.internet.cables.forEach((c, idx) => {
+    const item = document.createElement('div');
+    item.className = 'cableado-item';
+    const total = cableTotalItem(c, pm, pc);
+    item.innerHTML = `
+      <div class="ci-head">
+        <span>Cableado ${idx + 1}</span>
+        <span class="ci-total">S/ ${total.toFixed(2)}</span>
+      </div>
+      <button class="ci-del" title="Quitar">✕</button>
+      <div class="ci-row">
+        <label>Metros de cable</label>
+        <input type="number" value="${escapeHtml(String(c.metros||''))}" step="0.1" inputmode="decimal" placeholder="0">
+        <input type="text" value="S/${(pm*((parseFloat(c.metros)||0))).toFixed(2)}" disabled>
+      </div>
+      <div class="ci-row">
+        <label>Conectores</label>
+        <input type="number" value="${c.conectores}" min="0" step="1" inputmode="numeric">
+        <input type="text" value="S/${(pc*((parseInt(c.conectores)||0))).toFixed(2)}" disabled>
+      </div>
+    `;
+    const delBtn = item.querySelector('.ci-del');
+    const inputs = item.querySelectorAll('input:not([disabled])');
+    const [metrosI, conectoresI] = inputs;
+    metrosI.addEventListener('input', () => {
+      state.internet.cables[idx].metros = metrosI.value;
+      renderNetCableList(); updatePreview(); saveState();
+    });
+    conectoresI.addEventListener('input', () => {
+      state.internet.cables[idx].conectores = conectoresI.value;
+      renderNetCableList(); updatePreview(); saveState();
+    });
+    delBtn.addEventListener('click', () => {
+      if(state.internet.cables.length === 1) state.internet.cables[0] = { metros:'', conectores: 2 };
+      else state.internet.cables.splice(idx, 1);
+      renderNetCableList(); updatePreview(); saveState();
+    });
+    list.appendChild(item);
+  });
+  // total y summary
+  const total = cableTotalAll();
+  const sumEl = document.getElementById('net-cable-summary');
+  const totalEl = document.getElementById('net-cable-total');
+  if(total > 0){
+    sumEl.style.display = 'flex';
+    totalEl.textContent = `S/ ${total.toFixed(2)}`;
+  } else {
+    sumEl.style.display = 'none';
+  }
+}
+document.getElementById('net-cable-add').addEventListener('click', () => {
+  state.internet.cables.push({ metros: '', conectores: 2 });
+  renderNetCableList(); updatePreview(); saveState();
+});
+
+// === ACORDEONES ===
+document.querySelectorAll('.accordion-head').forEach(head => {
+  head.addEventListener('click', () => {
+    const acc = head.closest('.accordion');
+    acc.classList.toggle('open');
+  });
+});
+
+function updateAccordionSummaries(){
+  const s = state.internet;
+  // Servicio y paquete
+  const partsServ = [];
+  if(s.paquete) partsServ.push(s.paquete);
+  if(s.monto) partsServ.push(`S/${Number(s.monto).toFixed(2)}`);
+  if(s.metodo) partsServ.push(s.metodo);
+  setAccSummary('acc-servicio', 'sum-servicio', partsServ.length ? partsServ.join(' · ') : 'Servicio, paquete, pago, contrato', partsServ.length > 0);
+
+  // Equipos
+  const partsEq = [];
+  if(s.onu) partsEq.push('ONU');
+  if(s.meshEnabled){
+    const n = (s.mesh||[]).filter(m => m.codigo.trim() || m.ubicacion.trim()).length;
+    if(n) partsEq.push(n === 1 ? 'Mesh' : `${n} Mesh`);
+  }
+  if(s.camEnabled){
+    const n = (s.cam||[]).filter(c => c.area.trim() || c.codigo.trim()).length;
+    if(n) partsEq.push(n === 1 ? '1 cámara' : `${n} cámaras`);
+  }
+  setAccSummary('acc-equipos', 'sum-equipos', partsEq.length ? partsEq.join(' + ') : 'ONU, mesh, cámaras', partsEq.length > 0);
+
+  // Cableado
+  if(s.cableEnabled){
+    const total = cableTotalAll();
+    const cantCables = (s.cables||[]).filter(c => parseFloat(c.metros) > 0).length;
+    if(cantCables > 0){
+      setAccSummary('acc-cableado', 'sum-cableado', `${cantCables} cableado${cantCables > 1 ? 's' : ''} · S/ ${total.toFixed(2)}`, true);
+    } else {
+      setAccSummary('acc-cableado', 'sum-cableado', 'Activado, sin datos', false);
+    }
+  } else {
+    setAccSummary('acc-cableado', 'sum-cableado', 'Opcional — metros, conectores', false);
+  }
+
+  // Activaciones
+  const activas = Object.keys(s.activacionesSel || {}).length;
+  if(activas > 0){
+    const nombres = catalogo.activaciones.filter(a => a.id in s.activacionesSel).map(a => a.label).slice(0, 3);
+    setAccSummary('acc-activaciones', 'sum-activaciones', nombres.join(', ') + (activas > 3 ? `, +${activas-3}` : ''), true);
+  } else {
+    setAccSummary('acc-activaciones', 'sum-activaciones', 'Disney+, Netflix, MaxPlayer...', false);
+  }
+
+  // Trabajos
+  const trabajos = NET_CHECK_OPTIONS().filter(opt => s.checks[opt.id]).length;
+  const tieneObs = (s.obs || '').trim().length > 0;
+  if(trabajos > 0 || tieneObs){
+    const partes = [];
+    if(trabajos > 0) partes.push(`${trabajos} trabajo${trabajos>1?'s':''}`);
+    if(tieneObs) partes.push('obs');
+    setAccSummary('acc-trabajos', 'sum-trabajos', partes.join(' + '), true);
+  } else {
+    setAccSummary('acc-trabajos', 'sum-trabajos', 'Checklist de trabajos', false);
+  }
+
+  // Propietario
+  const esProp = (s.propietario || 'si') === 'si';
+  if(esProp){
+    setAccSummary('acc-propietario', 'sum-propietario', 'Sí es propietario', true);
+  } else {
+    const tieneDatos = (s.propNombre || '').trim() || (s.propTel || '').trim();
+    setAccSummary('acc-propietario', 'sum-propietario', tieneDatos ? `No — ${(s.propNombre||'').trim() || (s.propTel||'').trim()}` : 'No es propietario', true);
+  }
+}
+function setAccSummary(accId, sumId, text, hasData){
+  const acc = document.getElementById(accId);
+  if(!acc) return;
+  acc.classList.toggle('has-data', !!hasData);
+  document.getElementById(sumId).textContent = text;
+}
+function renderNetChecks(){
+  const wrap = document.getElementById('net-checks');
+  wrap.innerHTML = '';
+  NET_CHECK_OPTIONS().forEach(opt => {
+    const checked = state.internet.checks[opt.id];
+    const el = document.createElement('label');
+    el.className = 'check-item' + (checked ? ' checked' : '');
+    el.innerHTML = `<input type="checkbox" ${checked ? 'checked' : ''}><span>${opt.label}</span>`;
+    el.querySelector('input').addEventListener('change', (e) => {
+      state.internet.checks[opt.id] = e.target.checked;
+      el.classList.toggle('checked', e.target.checked);
+      updatePreview(); saveState();
+    });
+    wrap.appendChild(el);
+  });
+}
+
+const SUP_BINDINGS = {
+  'sup-servicio': 'servicio', 'sup-problema': 'problema',
+  'sup-solucion': 'solucion', 'sup-obs': 'obs'
+};
+Object.entries(SUP_BINDINGS).forEach(([id, key]) => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => {
+    state.soporte[key] = el.value;
+    updatePreview(); saveState();
+  });
+});
+function renderSupChecks(){
+  const wrap = document.getElementById('sup-checks');
+  wrap.innerHTML = '';
+  SUP_CHECK_OPTIONS().forEach(opt => {
+    const checked = state.soporte.checks[opt.id];
+    const el = document.createElement('label');
+    el.className = 'check-item' + (checked ? ' checked' : '');
+    el.innerHTML = `<input type="checkbox" ${checked ? 'checked' : ''}><span>${opt.label}</span>`;
+    el.querySelector('input').addEventListener('change', (e) => {
+      state.soporte.checks[opt.id] = e.target.checked;
+      el.classList.toggle('checked', e.target.checked);
+      updatePreview(); saveState();
+    });
+    wrap.appendChild(el);
+  });
+}
+
+/* === Paquete select === */
+function renderPaqueteSelect(){
+  const sel = document.getElementById('net-paquete-sel');
+  const current = state.internet.paqueteId || '';
+  sel.innerHTML = '<option value="">— Sin seleccionar —</option>';
+  catalogo.paquetes.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.label + (p.precio ? ` · S/${p.precio}` : '');
+    sel.appendChild(opt);
+  });
+  sel.value = current;
+  document.getElementById('net-paquete-precio').value = state.internet.paquetePrecio || '';
+}
+
+/* === Activaciones list === */
+function renderActivacionesList(){
+  const list = document.getElementById('net-activaciones-list');
+  list.innerHTML = '';
+  if(catalogo.activaciones.length === 0){
+    const empty = document.createElement('div');
+    empty.style.cssText = 'color:var(--text-faint);font-size:13px;text-align:center;padding:12px;font-style:italic';
+    empty.textContent = 'No hay activaciones. Toca "Gestionar" para agregar.';
+    list.appendChild(empty);
+    return;
+  }
+  catalogo.activaciones.forEach(act => {
+    const sel = state.internet.activacionesSel[act.id];
+    const checked = sel !== undefined;
+    const row = document.createElement('div');
+    row.className = 'activacion-row' + (checked ? ' checked' : '');
+    row.innerHTML = `
+      <input type="checkbox" ${checked ? 'checked' : ''}>
+      <div class="a-name">${escapeHtml(act.label)}</div>
+      <input type="text" placeholder="Marca / TV" value="${escapeHtml(sel || '')}">
+    `;
+    const [chk, , txt] = row.children;
+    chk.addEventListener('change', () => {
+      if(chk.checked){
+        state.internet.activacionesSel[act.id] = txt.value || '';
+        row.classList.add('checked');
+      } else {
+        delete state.internet.activacionesSel[act.id];
+        row.classList.remove('checked');
+      }
+      updatePreview(); saveState();
+    });
+    txt.addEventListener('input', () => {
+      if(chk.checked){
+        state.internet.activacionesSel[act.id] = txt.value;
+        updatePreview(); saveState();
+      } else {
+        // Marcar automáticamente si escribes en el campo
+        chk.checked = true;
+        state.internet.activacionesSel[act.id] = txt.value;
+        row.classList.add('checked');
+        updatePreview(); saveState();
+      }
+    });
+    list.appendChild(row);
+  });
+}
+
+/* =========================================================
+   MODAL — gestionar catálogos editables
+   ========================================================= */
+let modalContext = null; // { catalog: 'paquetes' | 'activaciones' | 'camChecks' | 'netChecks' | 'supChecks' }
+
+function openModal(catalog, title){
+  modalContext = { catalog };
+  document.getElementById('modal-title').textContent = title;
+  renderModalBody();
+  document.getElementById('modal-bg').classList.add('show');
+}
+function closeModal(){
+  document.getElementById('modal-bg').classList.remove('show');
+  modalContext = null;
+}
+
+function renderModalBody(){
+  if(!modalContext) return;
+  const body = document.getElementById('modal-body');
+  const items = catalogo[modalContext.catalog];
+  body.innerHTML = '';
+  if(items.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'modal-empty';
+    empty.textContent = 'No hay opciones. Agrega una nueva abajo.';
+    body.appendChild(empty);
+    return;
+  }
+  const withPrice = (modalContext.catalog === 'paquetes');
+  items.forEach((item, idx) => {
+    const row = document.createElement('div');
+    row.className = 'modal-item' + (withPrice ? ' with-price' : '');
+    if(withPrice){
+      row.innerHTML = `
+        <input type="text" placeholder="Nombre del paquete" value="${escapeHtml(item.label)}">
+        <input type="text" placeholder="Precio" value="${escapeHtml(item.precio || '')}" inputmode="decimal">
+        <button class="icon-btn" title="Quitar">✕</button>
+      `;
+      const [nameI, priceI, delBtn] = row.children;
+      nameI.addEventListener('input', () => { items[idx].label = nameI.value; });
+      priceI.addEventListener('input', () => { items[idx].precio = priceI.value; });
+      delBtn.addEventListener('click', () => { items.splice(idx, 1); renderModalBody(); });
+    } else {
+      row.innerHTML = `
+        <input type="text" placeholder="Nombre de la opción" value="${escapeHtml(item.label)}">
+        <button class="icon-btn" title="Quitar">✕</button>
+      `;
+      const [nameI, delBtn] = row.children;
+      nameI.addEventListener('input', () => {
+        items[idx].label = nameI.value;
+        // Si tiene "sentence", la actualizamos también
+        if('sentence' in items[idx]) items[idx].sentence = nameI.value.endsWith('.') ? nameI.value : nameI.value + '.';
+      });
+      delBtn.addEventListener('click', () => { items.splice(idx, 1); renderModalBody(); });
+    }
+    body.appendChild(row);
+  });
+}
+
+function modalAddItem(){
+  if(!modalContext) return;
+  const items = catalogo[modalContext.catalog];
+  const newId = 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+  if(modalContext.catalog === 'paquetes'){
+    items.push({ id: newId, label: '', precio: '' });
+  } else if(modalContext.catalog === 'activaciones'){
+    items.push({ id: newId, label: '' });
+  } else {
+    items.push({ id: newId, label: '', sentence: '' });
+  }
+  renderModalBody();
+}
+
+function modalDone(){
+  // Persistir y re-renderizar la sección correspondiente
+  saveCatalog();
+  if(modalContext){
+    const c = modalContext.catalog;
+    if(c === 'paquetes'){
+      // Si el paquete seleccionado ya no existe, limpiarlo
+      if(state.internet.paqueteId && !catalogo.paquetes.find(p => p.id === state.internet.paqueteId)){
+        state.internet.paqueteId = '';
+        state.internet.paquete = '';
+      }
+      renderPaqueteSelect();
+    } else if(c === 'activaciones'){
+      // Quitar activaciones-sel que ya no existan
+      Object.keys(state.internet.activacionesSel).forEach(id => {
+        if(!catalogo.activaciones.find(a => a.id === id)) delete state.internet.activacionesSel[id];
+      });
+      renderActivacionesList();
+    } else if(c === 'camChecks'){
+      // Limpiar checks huérfanos
+      Object.keys(state.camaras.checks).forEach(id => {
+        if(!catalogo.camChecks.find(x => x.id === id)) delete state.camaras.checks[id];
+      });
+      renderCamChecks();
+    } else if(c === 'netChecks'){
+      Object.keys(state.internet.checks).forEach(id => {
+        if(!catalogo.netChecks.find(x => x.id === id)) delete state.internet.checks[id];
+      });
+      renderNetChecks();
+    } else if(c === 'supChecks'){
+      Object.keys(state.soporte.checks).forEach(id => {
+        if(!catalogo.supChecks.find(x => x.id === id)) delete state.soporte.checks[id];
+      });
+      renderSupChecks();
+    }
+  }
+  updatePreview();
+  saveState();
+  closeModal();
+}
+
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-add').addEventListener('click', modalAddItem);
+document.getElementById('modal-done').addEventListener('click', modalDone);
+document.getElementById('modal-bg').addEventListener('click', (e) => {
+  if(e.target.id === 'modal-bg') closeModal();
+});
+
+// Botones que abren el modal
+document.getElementById('net-paquete-manage').addEventListener('click', () => openModal('paquetes', 'Gestionar paquetes'));
+document.getElementById('net-activaciones-manage').addEventListener('click', () => openModal('activaciones', 'Gestionar activaciones'));
+document.getElementById('cam-checks-manage').addEventListener('click', () => openModal('camChecks', 'Editar opciones — Cámaras'));
+document.getElementById('net-checks-manage').addEventListener('click', () => openModal('netChecks', 'Editar opciones — Internet'));
+document.getElementById('sup-checks-manage').addEventListener('click', () => openModal('supChecks', 'Editar opciones — Soporte'));
+
+/* === Persistencia catálogo === */
+function saveCatalog(){ try { localStorage.setItem('reporte_catalogo_v1', JSON.stringify(catalogo)); } catch(e){} }
+function loadCatalog(){
+  try {
+    const raw = localStorage.getItem('reporte_catalogo_v1');
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed.camChecks) catalogo.camChecks = parsed.camChecks;
+    if(parsed.netChecks) catalogo.netChecks = parsed.netChecks;
+    if(parsed.supChecks) catalogo.supChecks = parsed.supChecks;
+    if(parsed.paquetes) catalogo.paquetes = parsed.paquetes;
+    if(parsed.activaciones) catalogo.activaciones = parsed.activaciones;
+  } catch(e){}
+}
+
+/* =========================================================
+   PREVIEW BUILDERS — 4 formatos
+   ========================================================= */
+
+// ====== CÁMARAS ======
+function buildCamarasPreview(){
+  const c = state.comun;
+  const s = state.camaras;
+  const camValidas = s.camaras.filter(cm => cm.area.trim() || cm.codigo.trim());
+  const checkedItems = CAM_CHECK_OPTIONS().filter(opt => s.checks[opt.id]);
+  const monto = s.monto ? Number(s.monto).toFixed(2) : '0.00';
+  const dirTxt = c.direccion || '[DIRECCIÓN]';
+  const fechaTxt = formatDateDMY(c.fecha);
+  const meses = c.descuento ? getDiscountMonths(c.fecha) : [];
+  const obsLines = s.obs.trim().split('\n').map(l => l.trim()).filter(Boolean);
+
+  if(state.formato === 'visual'){
+    const out = [];
+    out.push(`*${dirTxt}*`);
+    out.push('');
+    out.push('*_🛡️ REPORTE DE INSTALACIÓN_*');
+    out.push('');
+    out.push('🎥 *Servicio realizado*');
+    out.push('• Instalación de cámaras de seguridad');
+    out.push('');
+    out.push('💰 *Pago del servicio*');
+    out.push(`• S/ ${monto} — ${s.metodo}`);
+    if(camValidas.length){
+      out.push('');
+      out.push('📍 *Cámaras instaladas*');
+      camValidas.forEach(cam => {
+        const area = cam.area.trim() || '—';
+        const code = cam.codigo.trim();
+        out.push(`> ${area}${code ? ' (' + code + ')' : ''}`);
+      });
+    }
+    if(checkedItems.length || obsLines.length){
+      out.push('');
+      out.push('🔨 *Trabajos realizados*');
+      checkedItems.forEach(opt => out.push(`• ${opt.label}`));
+      obsLines.forEach(l => out.push(l.startsWith('•') || l.startsWith('-') ? l : `• ${l}`));
+    }
+    if(meses.length === 3){
+      out.push('');
+      out.push(`🎁 50% de descuento los meses de ${meses[0]}, ${meses[1]} y ${meses[2]}`);
+    }
+    out.push('');
+    out.push(`🗓️ Fecha de instalación: ${fechaTxt}`);
+    out.push('');
+    out.push('✨ Cliente conforme');
+    return out.join('\n');
+  }
+
+  if(state.formato === 'fmin'){
+    const out = [];
+    out.push(`*${dirTxt}*`);
+    out.push('──────────────────');
+    out.push('');
+    out.push(`REPORTE · INSTALACIÓN DE CÁMARAS`);
+    out.push(fechaTxt);
+    out.push('');
+    out.push('→ Servicio');
+    out.push('Instalación de cámaras de seguridad');
+    out.push('');
+    out.push('→ Pago');
+    out.push(`S/ ${monto} · ${s.metodo}`);
+    if(camValidas.length){
+      out.push('');
+      out.push('→ Cámaras instaladas');
+      camValidas.forEach(cam => {
+        const code = cam.codigo.trim();
+        const area = cam.area.trim() || '—';
+        out.push(`· ${area}${code ? ' — ' + code : ''}`);
+      });
+    }
+    if(checkedItems.length || obsLines.length){
+      out.push('');
+      out.push('→ Trabajos realizados');
+      checkedItems.forEach(opt => out.push(`· ${opt.label}`));
+      obsLines.forEach(l => out.push(l.startsWith('·') || l.startsWith('-') || l.startsWith('•') ? l : `· ${l}`));
+    }
+    if(meses.length === 3){
+      out.push('');
+      out.push('→ Descuento');
+      out.push(`50% en ${meses[0].toLowerCase()}, ${meses[1].toLowerCase()} y ${meses[2].toLowerCase()}`);
+    }
+    out.push('');
+    out.push('──────────────────');
+    out.push('Cliente conforme ✓');
+    return out.join('\n');
+  }
+
+  if(state.formato === 'futurista'){
+    const out = [];
+    out.push('▰▰▰ REPORTE · INSTALACIÓN ▰▰▰');
+    out.push('');
+    out.push(`[ DIR ]  *${dirTxt}*`);
+    out.push(`[ FCH ]  ${fechaTxt}`);
+    out.push(`[ SRV ]  Instalación de cámaras de seguridad`);
+    out.push(`[ PAG ]  S/ ${monto} ▸ ${s.metodo}`);
+    if(camValidas.length){
+      out.push('');
+      out.push('▸ *CÁMARAS INSTALADAS*');
+      camValidas.forEach(cam => {
+        const code = cam.codigo.trim();
+        const area = (cam.area.trim() || '—').padEnd(16, '.');
+        out.push(`  ▪ ${area}${code}`);
+      });
+    }
+    if(checkedItems.length || obsLines.length){
+      out.push('');
+      out.push('▸ *TRABAJOS REALIZADOS*');
+      checkedItems.forEach(opt => out.push(`  ▪ ${opt.label}`));
+      obsLines.forEach(l => out.push(`  ▪ ${l.replace(/^[·\-•]\s*/, '')}`));
+    }
+    if(meses.length === 3){
+      out.push('');
+      out.push('▸ *DESCUENTO ACTIVO*');
+      out.push(`  ▪ 50% · ${meses[0].slice(0,3)} / ${meses[1].slice(0,3)} / ${meses[2].slice(0,3)}`);
+    }
+    out.push('');
+    out.push('━━━━━━━━━━━━━━━━━━━━━━━');
+    out.push('✓ STATUS: Cliente conforme');
+    return out.join('\n');
+  }
+
+  if(state.formato === 'minimalista'){
+    const out = [];
+    out.push(`*${dirTxt}*`);
+    out.push('');
+    out.push('*Reporte de instalación*');
+    out.push(fechaTxt);
+    out.push('');
+    out.push('*Servicio*');
+    out.push('Instalación de cámaras de seguridad.');
+    out.push('');
+    out.push('*Pago*');
+    out.push(`S/ ${monto} (${s.metodo})`);
+    if(camValidas.length){
+      out.push('');
+      out.push('*Áreas instaladas*');
+      out.push(camValidas.map(cam => {
+        const code = cam.codigo.trim();
+        const area = cam.area.trim() || '—';
+        return `${area}${code ? ' (' + code + ')' : ''}`;
+      }).join(', '));
+    }
+    const obsList = [];
+    checkedItems.forEach(opt => obsList.push(opt.label + '.'));
+    obsLines.forEach(l => obsList.push(l.replace(/^[·\-•]\s*/, '')));
+    if(meses.length === 3) obsList.push(`50% de descuento los meses de ${meses[0].toLowerCase()}, ${meses[1].toLowerCase()} y ${meses[2].toLowerCase()}.`);
+    if(obsList.length){
+      out.push('');
+      out.push('*Observaciones*');
+      obsList.forEach(l => out.push(l));
+    }
+    out.push('');
+    out.push('Cliente conforme.');
+    return out.join('\n');
+  }
+
+  // CLÁSICO (default — formato actual)
+  const lines = [];
+  lines.push(`*${dirTxt}*`);
+  lines.push('');
+  lines.push('*_📌 REPORTE DE INSTALACIÓN_*');
+  lines.push('');
+  lines.push('*🔧 Servicio realizado*');
+  lines.push('• Instalación de cámaras de seguridad');
+  lines.push('');
+  lines.push('*✅ Pago del servicio*');
+  lines.push(`• S/ ${monto} — ${s.metodo}`);
+  lines.push('');
+  lines.push('*💬 OBSERVACIONES*');
+  if(camValidas.length){
+    lines.push('• Se instalaron cámaras en las siguientes áreas:');
+    camValidas.forEach(cam => {
+      const area = cam.area.trim() || '—';
+      const code = cam.codigo.trim();
+      lines.push(`> ${area}${code ? ' (' + code + ')' : ''}`);
+    });
+  }
+  checkedItems.forEach(opt => lines.push(`• Se realizó ${opt.label.toLowerCase()}`));
+  obsLines.forEach(l => lines.push(l.startsWith('•') || l.startsWith('-') ? l : `• ${l}`));
+  if(meses.length === 3){
+    lines.push('');
+    lines.push(`• 50% de descuento los meses de ${meses[0]}, ${meses[1]} y ${meses[2]}`);
+  }
+  lines.push('');
+  lines.push(`📌 Fecha de instalación: ${fechaTxt}`);
+  lines.push('');
+  lines.push('Cliente conforme ☺️');
+  return lines.join('\n');
+}
+
+// ====== INTERNET ======
+function buildInternetPreview(){
+  const c = state.comun;
+  const s = state.internet;
+  const dirTxt = c.direccion || '[DIRECCIÓN]';
+  const fechaTxt = formatDateDMY(c.fecha);
+  const monto = s.monto ? Number(s.monto).toFixed(2) : '';
+  const detalle = monto ? (s.concepto && s.concepto !== 'Otro' ? `${s.concepto} - ${s.metodo}` : s.metodo) : '';
+  const onuTrim = (s.onu || '').trim();
+  const meshValidos = s.meshEnabled ? (s.mesh || []).filter(m => m.codigo.trim() || m.ubicacion.trim()) : [];
+  const camValidas = s.camEnabled ? (s.cam || []).filter(cm => cm.area.trim() || cm.codigo.trim()) : [];
+
+  // Cableado de red
+  const cablePrecioM = parseFloat(s.cablePrecioMetro) || 0;
+  const cablePrecioC = parseFloat(s.cablePrecioConector) || 0;
+  const cablesValidos = s.cableEnabled ? (s.cables || []).filter(c => parseFloat(c.metros) > 0) : [];
+  const cableTotal = cablesValidos.reduce((sum, c) => sum + (parseFloat(c.metros)*cablePrecioM) + ((parseInt(c.conectores)||0)*cablePrecioC), 0);
+
+  // Servicio realizado + extras (mesh y/o cámaras y/o cableado si están activados)
+  const servicioBase = (s.servicio || '').trim();
+  const extras = [];
+  if(s.meshEnabled) extras.push('instalación de Mesh');
+  if(s.camEnabled) extras.push('instalación de cámaras de seguridad');
+  if(cablesValidos.length) extras.push('cableado de red');
+  const servicioCompleto = servicioBase + (extras.length
+    ? (servicioBase ? ' + ' : '') + extras.join(' + ').replace(/^./, c => servicioBase ? c : c.toUpperCase())
+    : '');
+
+  // Paquete: nombre + precio (vacíos si no hay)
+  const paqueteNombre = (s.paquete || '').trim();
+  const paquetePrecio = (s.paquetePrecio || '').trim();
+  const paqueteTxt = paqueteNombre ? (paquetePrecio ? `${paqueteNombre} (S/ ${paquetePrecio})` : paqueteNombre) : '';
+
+  // Activaciones: lista de strings "Disney+ — Sony" etc.
+  const activacionesTxt = [];
+  catalogo.activaciones.forEach(act => {
+    if(act.id in (s.activacionesSel || {})){
+      const marca = (s.activacionesSel[act.id] || '').trim();
+      activacionesTxt.push(marca ? `${act.label} — ${marca}` : act.label);
+    }
+  });
+
+  const obsLines = s.obs.trim().split('\n').map(l => l.trim()).filter(Boolean);
+  const checkedItems = NET_CHECK_OPTIONS().filter(opt => s.checks[opt.id]);
+  const meses = c.descuento ? getDiscountMonths(c.fecha) : [];
+
+  // Propietario
+  const esPropietario = (s.propietario || 'si') === 'si';
+  const propNombre = (s.propNombre || '').trim();
+  const propTel = (s.propTel || '').trim();
+
+  if(state.formato === 'visual'){
+    const out = [];
+    out.push(`*${dirTxt}*`);
+    out.push('');
+    out.push('📡 *Reporte de instalación*');
+    if(servicioCompleto){
+      out.push('');
+      out.push(`🛠️ _*Servicio realizado:*_ ${servicioCompleto}`);
+    }
+    if(paqueteTxt){
+      out.push('');
+      out.push(`📦 _*Paquete contratado:*_ ${paqueteTxt}`);
+    }
+    if(onuTrim || meshValidos.length || camValidas.length){
+      out.push('');
+      out.push('🔌 _*Equipos instalados:*_');
+      if(onuTrim) out.push(`• ONU: ${onuTrim}`);
+      meshValidos.forEach(m => {
+        const code = m.codigo.trim();
+        const ub = m.ubicacion.trim();
+        out.push(`• Mesh${ub ? ' (' + ub + ')' : ''}${code ? ': ' + code : ''}`);
+      });
+      camValidas.forEach(cam => {
+        const area = cam.area.trim() || '—';
+        const code = cam.codigo.trim();
+        out.push(`• Cámara ${area}${code ? ' (' + code + ')' : ''}`);
+      });
+    }
+    if(cablesValidos.length){
+      out.push('');
+      out.push('🧵 _*Cableado de red:*_');
+      cablesValidos.forEach((c, i) => {
+        const m = parseFloat(c.metros) || 0;
+        const conec = parseInt(c.conectores) || 0;
+        const subt = (m * cablePrecioM) + (conec * cablePrecioC);
+        out.push(`• Cableado ${i+1}: ${m} m × S/${cablePrecioM.toFixed(2)} + ${conec} conector${conec!==1?'es':''} × S/${cablePrecioC.toFixed(2)} = S/${subt.toFixed(2)}`);
+      });
+      out.push(`• *Total cableado: S/ ${cableTotal.toFixed(2)}*`);
+    }
+    if(monto){
+      out.push('');
+      out.push(`💰 _*Pago del servicio:*_ S/${monto} (${detalle})`);
+    }
+    if(activacionesTxt.length){
+      out.push('');
+      out.push('📺 _*Activaciones realizadas:*_');
+      activacionesTxt.forEach(a => out.push(`• ${a}`));
+    }
+    if(s.contrato){
+      out.push('');
+      out.push(`📝 _*Firma de contrato:*_ ${s.contrato}`);
+    }
+    if(checkedItems.length || obsLines.length){
+      out.push('');
+      out.push('💬 _*Observaciones:*_');
+      checkedItems.forEach(opt => out.push(`• ${netCheckSentence(opt.id)}`));
+      obsLines.forEach(l => out.push(l.startsWith('•') || l.startsWith('-') ? l : `• ${l}`));
+    }
+    if(meses.length === 3){
+      out.push('');
+      out.push(`🎁 _*Descuento aplicado:*_ 50% los meses de ${meses[0]}, ${meses[1]} y ${meses[2]}`);
+    }
+    out.push('');
+    if(esPropietario){
+      out.push('🏠 _*Propietario:*_ El cliente es propietario del inmueble');
+    } else {
+      out.push('🏠 _*El cliente NO es propietario del inmueble*_');
+      if(propNombre || propTel){
+        out.push('_*Datos del propietario real:*_');
+        if(propNombre) out.push(propNombre);
+        if(propTel) out.push(propTel);
+      }
+    }
+    out.push('');
+    out.push(`🗓️ *Fecha de instalación:* ${fechaTxt}`);
+    out.push('');
+    out.push('✨ *Cliente conforme*');
+    return out.join('\n');
+  }
+
+  if(state.formato === 'fmin'){
+    const out = [];
+    out.push(`*${dirTxt}*`);
+    out.push('──────────────────');
+    out.push('');
+    out.push('REPORTE · INSTALACIÓN INTERNET');
+    out.push(fechaTxt);
+    if(servicioCompleto){
+      out.push('');
+      out.push('→ Servicio');
+      out.push(servicioCompleto);
+    }
+    if(paqueteTxt){
+      out.push('');
+      out.push('→ Paquete');
+      out.push(paqueteTxt);
+    }
+    if(onuTrim || meshValidos.length || camValidas.length){
+      out.push('');
+      out.push('→ Equipos instalados');
+      if(onuTrim) out.push(`· ONU — ${onuTrim}`);
+      meshValidos.forEach(m => {
+        const code = m.codigo.trim();
+        const ub = m.ubicacion.trim();
+        out.push(`· Mesh${ub ? ' (' + ub + ')' : ''}${code ? ' — ' + code : ''}`);
+      });
+      camValidas.forEach(cam => {
+        const area = cam.area.trim() || '—';
+        const code = cam.codigo.trim();
+        out.push(`· Cámara ${area}${code ? ' — ' + code : ''}`);
+      });
+    }
+    if(cablesValidos.length){
+      out.push('');
+      out.push('→ Cableado de red');
+      cablesValidos.forEach((c, i) => {
+        const m = parseFloat(c.metros) || 0;
+        const conec = parseInt(c.conectores) || 0;
+        const subt = (m * cablePrecioM) + (conec * cablePrecioC);
+        out.push(`· ${m} m + ${conec} conector${conec!==1?'es':''} — S/${subt.toFixed(2)}`);
+      });
+      out.push(`· Total: S/ ${cableTotal.toFixed(2)}`);
+    }
+    if(monto){
+      out.push('');
+      out.push('→ Pago');
+      out.push(`S/ ${monto} · ${detalle}`);
+    }
+    if(activacionesTxt.length){
+      out.push('');
+      out.push('→ Activaciones');
+      activacionesTxt.forEach(a => out.push(`· ${a}`));
+    }
+    if(s.contrato){
+      out.push('');
+      out.push('→ Contrato');
+      out.push(s.contrato);
+    }
+    if(checkedItems.length || obsLines.length){
+      out.push('');
+      out.push('→ Observaciones');
+      checkedItems.forEach(opt => out.push(`· ${netCheckSentence(opt.id)}`));
+      obsLines.forEach(l => out.push(l.startsWith('·') || l.startsWith('-') || l.startsWith('•') ? l : `· ${l}`));
+    }
+    if(meses.length === 3){
+      out.push('');
+      out.push('→ Descuento');
+      out.push(`50% en ${meses[0].toLowerCase()}, ${meses[1].toLowerCase()} y ${meses[2].toLowerCase()}`);
+    }
+    // Propietario
+    out.push('');
+    if(esPropietario){
+      out.push('→ Propietario');
+      out.push('Cliente es propietario del inmueble.');
+    } else {
+      out.push('→ Propietario (no es)');
+      out.push('El cliente no es propietario del inmueble.');
+      if(propNombre) out.push(`Propietario: ${propNombre}`);
+      if(propTel) out.push(`Teléfono: ${propTel}`);
+    }
+    out.push('');
+    out.push('──────────────────');
+    out.push('Cliente conforme ✓');
+    return out.join('\n');
+  }
+
+  if(state.formato === 'futurista'){
+    const out = [];
+    out.push('▰▰▰ REPORTE · INSTALACIÓN INTERNET ▰▰▰');
+    out.push('');
+    out.push(`[ DIR ]  *${dirTxt}*`);
+    out.push(`[ FCH ]  ${fechaTxt}`);
+    if(servicioCompleto) out.push(`[ SRV ]  ${servicioCompleto}`);
+    if(paqueteTxt) out.push(`[ PKT ]  ${paqueteTxt}`);
+    if(monto) out.push(`[ PAG ]  S/ ${monto} ▸ ${detalle}`);
+    if(s.contrato) out.push(`[ CTR ]  ${s.contrato}`);
+    if(onuTrim || meshValidos.length || camValidas.length){
+      out.push('');
+      out.push('▸ *EQUIPOS INSTALADOS*');
+      if(onuTrim) out.push(`  ▪ ONU ............... ${onuTrim}`);
+      meshValidos.forEach(m => {
+        const code = m.codigo.trim();
+        const ub = m.ubicacion.trim();
+        const lbl = `Mesh${ub ? ' (' + ub + ')' : ''}`.padEnd(18, '.');
+        out.push(`  ▪ ${lbl}${code}`);
+      });
+      camValidas.forEach(cam => {
+        const lbl = `Cámara ${cam.area.trim() || '—'}`.padEnd(18, '.');
+        const code = cam.codigo.trim();
+        out.push(`  ▪ ${lbl}${code}`);
+      });
+    }
+    if(cablesValidos.length){
+      out.push('');
+      out.push('▸ *CABLEADO DE RED*');
+      cablesValidos.forEach((c, i) => {
+        const m = parseFloat(c.metros) || 0;
+        const conec = parseInt(c.conectores) || 0;
+        const subt = (m * cablePrecioM) + (conec * cablePrecioC);
+        out.push(`  ▪ #${i+1} · ${m}m + ${conec}c ▸ S/${subt.toFixed(2)}`);
+      });
+      out.push(`  ▪ TOTAL: S/ ${cableTotal.toFixed(2)}`);
+    }
+    if(activacionesTxt.length){
+      out.push('');
+      out.push('▸ *ACTIVACIONES*');
+      activacionesTxt.forEach(a => out.push(`  ▪ ${a}`));
+    }
+    if(checkedItems.length || obsLines.length){
+      out.push('');
+      out.push('▸ *OBSERVACIONES*');
+      checkedItems.forEach(opt => out.push(`  ▪ ${netCheckSentence(opt.id)}`));
+      obsLines.forEach(l => out.push(`  ▪ ${l.replace(/^[·\-•]\s*/, '')}`));
+    }
+    if(meses.length === 3){
+      out.push('');
+      out.push('▸ *DESCUENTO ACTIVO*');
+      out.push(`  ▪ 50% · ${meses[0].slice(0,3)} / ${meses[1].slice(0,3)} / ${meses[2].slice(0,3)}`);
+    }
+    // Propietario
+    out.push('');
+    if(esPropietario){
+      out.push('▸ *PROPIETARIO*');
+      out.push('  ▪ Cliente es propietario del inmueble');
+    } else {
+      out.push('▸ *PROPIETARIO (NO ES)*');
+      out.push('  ▪ El cliente NO es propietario');
+      if(propNombre) out.push(`  ▪ Nombre: ${propNombre}`);
+      if(propTel) out.push(`  ▪ Tel: ${propTel}`);
+    }
+    out.push('');
+    out.push('━━━━━━━━━━━━━━━━━━━━━━━');
+    out.push('✓ STATUS: Cliente conforme');
+    return out.join('\n');
+  }
+
+  if(state.formato === 'minimalista'){
+    const out = [];
+    out.push(`*${dirTxt}*`);
+    out.push('');
+    out.push('*Reporte de instalación*');
+    out.push(fechaTxt);
+    if(servicioCompleto){
+      out.push('');
+      out.push('*Servicio*');
+      out.push(servicioCompleto);
+    }
+    if(paqueteTxt){
+      out.push('');
+      out.push('*Paquete*');
+      out.push(paqueteTxt);
+    }
+    if(onuTrim || meshValidos.length || camValidas.length){
+      out.push('');
+      out.push('*Equipos instalados*');
+      const eqLines = [];
+      if(onuTrim) eqLines.push(`ONU: ${onuTrim}`);
+      meshValidos.forEach(m => {
+        const code = m.codigo.trim();
+        const ub = m.ubicacion.trim();
+        eqLines.push(`Mesh${ub ? ' (' + ub + ')' : ''}${code ? ': ' + code : ''}`);
+      });
+      camValidas.forEach(cam => {
+        const area = cam.area.trim() || '—';
+        const code = cam.codigo.trim();
+        eqLines.push(`Cámara ${area}${code ? ' (' + code + ')' : ''}`);
+      });
+      out.push(eqLines.join(', '));
+    }
+    if(cablesValidos.length){
+      out.push('');
+      out.push('*Cableado de red*');
+      const lns = cablesValidos.map((c, i) => {
+        const m = parseFloat(c.metros) || 0;
+        const conec = parseInt(c.conectores) || 0;
+        return `${m}m + ${conec}c`;
+      });
+      out.push(`${lns.join(' / ')} — Total: S/ ${cableTotal.toFixed(2)}`);
+    }
+    if(monto){
+      out.push('');
+      out.push('*Pago*');
+      out.push(`S/ ${monto} (${detalle})`);
+    }
+    if(activacionesTxt.length){
+      out.push('');
+      out.push('*Activaciones*');
+      out.push(activacionesTxt.join(', '));
+    }
+    if(s.contrato){
+      out.push('');
+      out.push('*Contrato*');
+      out.push(s.contrato);
+    }
+    const obsList = [];
+    checkedItems.forEach(opt => obsList.push(netCheckSentence(opt.id)));
+    obsLines.forEach(l => obsList.push(l.replace(/^[·\-•]\s*/, '')));
+    if(meses.length === 3) obsList.push(`50% de descuento los meses de ${meses[0].toLowerCase()}, ${meses[1].toLowerCase()} y ${meses[2].toLowerCase()}.`);
+    if(obsList.length){
+      out.push('');
+      out.push('*Observaciones*');
+      obsList.forEach(l => out.push(l));
+    }
+    // Propietario
+    out.push('');
+    out.push('*Propietario*');
+    if(esPropietario){
+      out.push('El cliente es propietario del inmueble.');
+    } else {
+      out.push('El cliente no es propietario del inmueble.');
+      if(propNombre) out.push(`Propietario: ${propNombre}`);
+      if(propTel) out.push(`Teléfono: ${propTel}`);
+    }
+    out.push('');
+    out.push('Cliente conforme.');
+    return out.join('\n');
+  }
+
+  // CLÁSICO
+  const lines = [];
+  lines.push(`*${dirTxt}*`);
+  lines.push('');
+  lines.push('📌 *Reporte de instalación*');
+  lines.push('');
+  if(servicioCompleto){
+    lines.push(`✅ _*Servicio realizado:*_ ${servicioCompleto}`);
+    lines.push('');
+  }
+  if(paqueteTxt){
+    lines.push(`✅ _*Paquete contratado:*_ ${paqueteTxt}`);
+    lines.push('');
+  }
+  if(onuTrim || meshValidos.length || camValidas.length){
+    lines.push('✅ _*Equipos instalados:*_');
+    if(onuTrim) lines.push(`- ONU: ${onuTrim}`);
+    meshValidos.forEach(m => {
+      const code = m.codigo.trim();
+      const ub = m.ubicacion.trim();
+      lines.push(`- Mesh${ub ? ' (' + ub + ')' : ''}${code ? ': ' + code : ''}`);
+    });
+    camValidas.forEach(cam => {
+      const area = cam.area.trim() || '—';
+      const code = cam.codigo.trim();
+      lines.push(`- Cámara ${area}${code ? ' (' + code + ')' : ''}`);
+    });
+    lines.push('');
+  }
+  if(cablesValidos.length){
+    lines.push('✅ _*Cableado de red:*_');
+    cablesValidos.forEach((c, i) => {
+      const m = parseFloat(c.metros) || 0;
+      const conec = parseInt(c.conectores) || 0;
+      const subt = (m * cablePrecioM) + (conec * cablePrecioC);
+      lines.push(`- Cableado ${i+1}: ${m} m × S/${cablePrecioM.toFixed(2)} + ${conec} conector${conec!==1?'es':''} × S/${cablePrecioC.toFixed(2)} = S/${subt.toFixed(2)}`);
+    });
+    lines.push(`- *Total: S/ ${cableTotal.toFixed(2)}*`);
+    lines.push('');
+  }
+  if(monto){
+    lines.push(`✅ _*Pago del servicio:*_ S/${monto} (${detalle}).`);
+    lines.push('');
+  }
+  if(activacionesTxt.length){
+    lines.push('✅ _*Activaciones realizadas:*_');
+    activacionesTxt.forEach(a => lines.push(`- ${a}`));
+    lines.push('');
+  }
+  if(s.contrato){
+    lines.push(`✅ _*Firma de contrato:*_ ${s.contrato}`);
+    lines.push('');
+  }
+  if(checkedItems.length || obsLines.length){
+    lines.push('💬 _*Observaciones:*_');
+    checkedItems.forEach(opt => lines.push(`- ${netCheckSentence(opt.id)}`));
+    obsLines.forEach(l => lines.push(l.startsWith('-') || l.startsWith('•') ? l : `- ${l}`));
+    lines.push('');
+  }
+  if(meses.length === 3){
+    lines.push(`✅ _*Descuento aplicado:*_ 50% los meses de ${meses[0]}, ${meses[1]} y ${meses[2]}.`);
+    lines.push('');
+  }
+  // Propietario
+  if(esPropietario){
+    lines.push('✅ _*Propietario:*_ El cliente es propietario del inmueble.');
+    lines.push('');
+  } else {
+    lines.push('💬 _*El cliente NO es propietario del inmueble.*_');
+    if(propNombre || propTel){
+      lines.push('_*Datos del propietario real:*_');
+      if(propNombre) lines.push(propNombre);
+      if(propTel) lines.push(propTel);
+    }
+    lines.push('');
+  }
+  lines.push(`📌 *Fecha de instalación:* ${fechaTxt}`);
+  lines.push('');
+  lines.push('🙂 *Cliente conforme.*');
+  return lines.join('\n');
+}
+
+// ====== SOPORTE ======
+function buildSoportePreview(){
+  const c = state.comun;
+  const s = state.soporte;
+  const dirTxt = c.direccion || '[DIRECCIÓN]';
+  const fechaTxt = formatDateDMY(c.fecha);
+  const checkedItems = SUP_CHECK_OPTIONS().filter(opt => s.checks[opt.id]);
+  const obsLines = s.obs.trim().split('\n').map(l => l.trim()).filter(Boolean);
+  const meses = c.descuento ? getDiscountMonths(c.fecha) : [];
+
+  if(state.formato === 'visual'){
+    const out = [];
+    out.push(`*${dirTxt}*`);
+    out.push('');
+    out.push('🔧 *Reporte de soporte*');
+    if(s.servicio.trim()){
+      out.push('');
+      out.push('🎯 *Servicio realizado*');
+      out.push(s.servicio.trim());
+    }
+    if(s.problema.trim()){
+      out.push('');
+      out.push('⚠️ *Problema*');
+      out.push(s.problema.trim());
+    }
+    if(s.solucion.trim()){
+      out.push('');
+      out.push('💡 *Solución*');
+      out.push(s.solucion.trim());
+    }
+    if(checkedItems.length || obsLines.length){
+      out.push('');
+      out.push('💬 *Observaciones*');
+      checkedItems.forEach(opt => out.push(`• ${supCheckSentence(opt.id)}`));
+      obsLines.forEach(l => out.push(l.startsWith('•') || l.startsWith('-') ? l : `• ${l}`));
+    }
+    if(meses.length === 3){
+      out.push('');
+      out.push(`🎁 *Descuento aplicado:* 50% los meses de ${meses[0]}, ${meses[1]} y ${meses[2]}`);
+    }
+    out.push('');
+    out.push(`🗓️ *Fecha del soporte:* ${fechaTxt}`);
+    out.push('');
+    out.push('✨ *Cliente conforme*');
+    return out.join('\n');
+  }
+
+  if(state.formato === 'fmin'){
+    const out = [];
+    out.push(`*${dirTxt}*`);
+    out.push('──────────────────');
+    out.push('');
+    out.push('REPORTE · SOPORTE');
+    out.push(fechaTxt);
+    if(s.servicio.trim()){
+      out.push('');
+      out.push('→ Servicio');
+      out.push(s.servicio.trim());
+    }
+    if(s.problema.trim()){
+      out.push('');
+      out.push('→ Problema');
+      out.push(s.problema.trim());
+    }
+    if(s.solucion.trim()){
+      out.push('');
+      out.push('→ Solución');
+      out.push(s.solucion.trim());
+    }
+    if(checkedItems.length || obsLines.length){
+      out.push('');
+      out.push('→ Observaciones');
+      checkedItems.forEach(opt => out.push(`· ${supCheckSentence(opt.id)}`));
+      obsLines.forEach(l => out.push(l.startsWith('·') || l.startsWith('-') || l.startsWith('•') ? l : `· ${l}`));
+    }
+    if(meses.length === 3){
+      out.push('');
+      out.push('→ Descuento');
+      out.push(`50% en ${meses[0].toLowerCase()}, ${meses[1].toLowerCase()} y ${meses[2].toLowerCase()}`);
+    }
+    out.push('');
+    out.push('──────────────────');
+    out.push('Cliente conforme ✓');
+    return out.join('\n');
+  }
+
+  if(state.formato === 'futurista'){
+    const out = [];
+    out.push('▰▰▰ REPORTE · SOPORTE ▰▰▰');
+    out.push('');
+    out.push(`[ DIR ]  *${dirTxt}*`);
+    out.push(`[ FCH ]  ${fechaTxt}`);
+    if(s.servicio.trim()) out.push(`[ SRV ]  ${s.servicio.trim()}`);
+    if(s.problema.trim()){
+      out.push('');
+      out.push('▸ *PROBLEMA*');
+      out.push(s.problema.trim().split('\n').map(l => `  ${l}`).join('\n'));
+    }
+    if(s.solucion.trim()){
+      out.push('');
+      out.push('▸ *SOLUCIÓN*');
+      out.push(s.solucion.trim().split('\n').map(l => `  ${l}`).join('\n'));
+    }
+    if(checkedItems.length || obsLines.length){
+      out.push('');
+      out.push('▸ *OBSERVACIONES*');
+      checkedItems.forEach(opt => out.push(`  ▪ ${supCheckSentence(opt.id)}`));
+      obsLines.forEach(l => out.push(`  ▪ ${l.replace(/^[·\-•]\s*/, '')}`));
+    }
+    if(meses.length === 3){
+      out.push('');
+      out.push('▸ *DESCUENTO ACTIVO*');
+      out.push(`  ▪ 50% · ${meses[0].slice(0,3)} / ${meses[1].slice(0,3)} / ${meses[2].slice(0,3)}`);
+    }
+    out.push('');
+    out.push('━━━━━━━━━━━━━━━━━━━━━━━');
+    out.push('✓ STATUS: Cliente conforme');
+    return out.join('\n');
+  }
+
+  if(state.formato === 'minimalista'){
+    const out = [];
+    out.push(`*${dirTxt}*`);
+    out.push('');
+    out.push('*Reporte de soporte*');
+    out.push(fechaTxt);
+    if(s.servicio.trim()){
+      out.push('');
+      out.push('*Servicio*');
+      out.push(s.servicio.trim());
+    }
+    if(s.problema.trim()){
+      out.push('');
+      out.push('*Problema*');
+      out.push(s.problema.trim());
+    }
+    if(s.solucion.trim()){
+      out.push('');
+      out.push('*Solución*');
+      out.push(s.solucion.trim());
+    }
+    const obsList = [];
+    checkedItems.forEach(opt => obsList.push(supCheckSentence(opt.id)));
+    obsLines.forEach(l => obsList.push(l.replace(/^[·\-•]\s*/, '')));
+    if(meses.length === 3) obsList.push(`50% de descuento los meses de ${meses[0].toLowerCase()}, ${meses[1].toLowerCase()} y ${meses[2].toLowerCase()}.`);
+    if(obsList.length){
+      out.push('');
+      out.push('*Observaciones*');
+      obsList.forEach(l => out.push(l));
+    }
+    out.push('');
+    out.push('Cliente conforme.');
+    return out.join('\n');
+  }
+
+  // CLÁSICO
+  const lines = [];
+  lines.push(`*${dirTxt}*`);
+  lines.push('');
+  lines.push('📌 *Reporte de soporte*');
+  lines.push('');
+  if(s.servicio.trim()){
+    lines.push('✅ *Servicio realizado:*');
+    lines.push(s.servicio.trim());
+    lines.push('');
+  }
+  if(s.problema.trim()){
+    lines.push('⛓️‍💥 *Problema:*');
+    lines.push(s.problema.trim());
+    lines.push('');
+  }
+  if(s.solucion.trim()){
+    lines.push('🛠️ *Solución:*');
+    lines.push(s.solucion.trim());
+    lines.push('');
+  }
+  if(checkedItems.length || obsLines.length){
+    lines.push('💬 *Observaciones:*');
+    checkedItems.forEach(opt => lines.push(supCheckSentence(opt.id)));
+    obsLines.forEach(l => lines.push(l));
+    lines.push('');
+  }
+  if(meses.length === 3){
+    lines.push(`✅ *Descuento aplicado:* 50% los meses de ${meses[0]}, ${meses[1]} y ${meses[2]}.`);
+    lines.push('');
+  }
+  lines.push(`📌 *Fecha del soporte:* ${fechaTxt}`);
+  lines.push('');
+  lines.push('🙂 *Cliente conforme.*');
+  return lines.join('\n');
+}
+
+function updatePreview(){
+  let text = '';
+  if(state.tipo === 'camaras') text = buildCamarasPreview();
+  else if(state.tipo === 'internet') text = buildInternetPreview();
+  else text = buildSoportePreview();
+  document.getElementById('preview').textContent = text;
+
+  if(state.tipo === 'internet') updateAccordionSummaries();
+
+  const dp = document.getElementById('f-descuento-preview');
+  if(state.comun.descuento && state.comun.fecha){
+    const meses = getDiscountMonths(state.comun.fecha);
+    if(meses.length === 3){
+      dp.style.display = 'flex';
+      dp.innerHTML = `<span class="pill">50%</span><span>Aplicado en <strong>${meses.join(', ')}</strong></span>`;
+    } else { dp.style.display = 'none'; }
+  } else { dp.style.display = 'none'; }
+}
+
+document.getElementById('copy-btn').addEventListener('click', async (e) => {
+  const btn = e.currentTarget;
+  const text = document.getElementById('preview').textContent;
+  try { await navigator.clipboard.writeText(text); }
+  catch(err){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  btn.classList.add('copied');
+  btn.querySelector('.copy-label').textContent = '¡Copiado!';
+  btn.querySelector('.ico').textContent = '✓';
+  showToast();
+  setTimeout(() => {
+    btn.classList.remove('copied');
+    btn.querySelector('.copy-label').textContent = 'Copiar reporte';
+    btn.querySelector('.ico').textContent = '📋';
+  }, 2000);
+});
+
+function showToast(){
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if(!confirm('¿Limpiar el formulario? Se conservarán dirección y fecha.')) return;
+  if(state.tipo === 'camaras'){
+    const cks = {};
+    catalogo.camChecks.forEach(o => { cks[o.id] = ['renovacion','limpieza'].includes(o.id); });
+    state.camaras = { monto:'', metodo:'YAPE', camaras:[{area:'',codigo:''}], obs:'', checks: cks };
+  } else if(state.tipo === 'internet'){
+    const cks = {};
+    catalogo.netChecks.forEach(o => { cks[o.id] = ['config-router','prueba-velocidad','limpieza'].includes(o.id); });
+    state.internet = { servicio:'Instalación FTTH completada.', paquete:'', paqueteId:'', paquetePrecio:'',
+      onu:'', meshEnabled:false, mesh:[{ubicacion:'',codigo:''}],
+      camEnabled:false, cam:[{area:'',codigo:''}],
+      cableEnabled:false, cablePrecioMetro:'2.00', cablePrecioConector:'5.00', cables:[{metros:'',conectores:2}],
+      monto:'', concepto:'Prorrateo', metodo:'Yape',
+      activacionesSel:{}, contrato:'Realizado', obs:'',
+      propietario:'si', propNombre:'', propTel:'',
+      checks: cks };
+  } else {
+    const cks = {};
+    catalogo.supChecks.forEach(o => { cks[o.id] = ['pruebas'].includes(o.id); });
+    state.soporte = { servicio:'', problema:'', solucion:'', obs:'', checks: cks };
+  }
+  hydrate();
+  saveState();
+});
+
+function hydrate(){
+  document.querySelectorAll('.type-card').forEach(c => c.classList.toggle('active', c.dataset.type === state.tipo));
+  document.querySelectorAll('.section-block').forEach(s => s.classList.toggle('active', s.dataset.section === state.tipo));
+  document.getElementById('badge-type').textContent = TYPE_LABELS[state.tipo];
+
+  // Si arranca en internet, abrir el primer acordeón
+  if(state.tipo === 'internet' && !document.querySelector('.accordion.open')){
+    document.getElementById('acc-servicio').classList.add('open');
+  }
+
+  document.querySelectorAll('.fmt-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt === state.formato));
+
+  document.getElementById('f-direccion').value = state.comun.direccion;
+  document.getElementById('f-fecha').value = state.comun.fecha || todayISO();
+  document.getElementById('f-descuento').checked = !!state.comun.descuento;
+
+  document.getElementById('cam-monto').value = state.camaras.monto;
+  document.getElementById('cam-metodo').value = state.camaras.metodo;
+  document.getElementById('cam-obs').value = state.camaras.obs;
+  renderCamList();
+  renderCamChecks();
+
+  Object.entries(NET_BINDINGS).forEach(([id, key]) => {
+    document.getElementById(id).value = state.internet[key] || '';
+  });
+  // Mesh init
+  if(!state.internet.mesh || !state.internet.mesh.length) state.internet.mesh = [{ubicacion:'',codigo:''}];
+  document.getElementById('net-mesh-toggle').checked = !!state.internet.meshEnabled;
+  document.getElementById('net-mesh-wrap').style.display = state.internet.meshEnabled ? 'block' : 'none';
+  renderNetMeshList();
+  // Cámaras en Internet init
+  if(!state.internet.cam || !state.internet.cam.length) state.internet.cam = [{area:'',codigo:''}];
+  document.getElementById('net-cam-toggle').checked = !!state.internet.camEnabled;
+  document.getElementById('net-cam-wrap').style.display = state.internet.camEnabled ? 'block' : 'none';
+  renderNetCamList();
+  // Cableado init
+  if(!state.internet.cables || !state.internet.cables.length) state.internet.cables = [{metros:'', conectores:2}];
+  if(!state.internet.cablePrecioMetro) state.internet.cablePrecioMetro = '2.00';
+  if(!state.internet.cablePrecioConector) state.internet.cablePrecioConector = '5.00';
+  document.getElementById('net-cable-toggle').checked = !!state.internet.cableEnabled;
+  document.getElementById('net-cable-wrap').style.display = state.internet.cableEnabled ? 'block' : 'none';
+  document.getElementById('net-cable-precio-metro').value = state.internet.cablePrecioMetro;
+  document.getElementById('net-cable-precio-conector').value = state.internet.cablePrecioConector;
+  renderNetCableList();
+  renderNetChecks();
+
+  // Paquete + activaciones
+  if(!state.internet.activacionesSel) state.internet.activacionesSel = {};
+  renderPaqueteSelect();
+  renderActivacionesList();
+
+  // Propietario
+  const prop = state.internet.propietario || 'si';
+  document.querySelectorAll('.prop-btn').forEach(b => b.classList.toggle('active', b.dataset.prop === prop));
+  document.getElementById('net-prop-extra').style.display = (prop === 'no') ? 'block' : 'none';
+
+  Object.entries(SUP_BINDINGS).forEach(([id, key]) => {
+    document.getElementById(id).value = state.soporte[key] || '';
+  });
+  renderSupChecks();
+
+  updatePreview();
+}
+
+loadCatalog();
+loadState();
+// Si state está vacío de checks (primera carga), inicializo defaults
+if(!state.camaras.checks || Object.keys(state.camaras.checks).length === 0){
+  state.camaras.checks = {};
+  catalogo.camChecks.forEach(o => { state.camaras.checks[o.id] = ['renovacion','limpieza'].includes(o.id); });
+}
+if(!state.internet.checks || Object.keys(state.internet.checks).length === 0){
+  state.internet.checks = {};
+  catalogo.netChecks.forEach(o => { state.internet.checks[o.id] = ['config-router','prueba-velocidad','limpieza'].includes(o.id); });
+}
+if(!state.soporte.checks || Object.keys(state.soporte.checks).length === 0){
+  state.soporte.checks = {};
+  catalogo.supChecks.forEach(o => { state.soporte.checks[o.id] = ['pruebas'].includes(o.id); });
+}
+if(!state.comun.fecha) state.comun.fecha = todayISO();
+hydrate();
+</script>
+</body>
+</html>
